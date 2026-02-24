@@ -6,6 +6,9 @@ export default defineConfig({
   base: '/electrarewards/',
   server: {
     port: 3000,
-    host: true
+    host: true,
+    proxy: {
+      '/api': 'http://localhost:4000'
+    }
   }
 })

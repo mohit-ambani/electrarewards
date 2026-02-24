@@ -1,0 +1,71 @@
+/* ElectraRewards Admin Styles */
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-redeemed {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-accepted {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.status-packed {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+.status-in_transit {
+  background-color: #cffafe;
+  color: #0e7490;
+}
+
+.status-out_for_delivery {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status-delivered {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+/* Smooth transitions */
+table tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Form focus styles */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

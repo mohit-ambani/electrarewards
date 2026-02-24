@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { createRedemption } from './services/api';
 import SplashScreen from './components/SplashScreen';
 import Header from './components/Header';
 import HeroBanner from './components/HeroBanner';
@@ -83,6 +84,9 @@ export default function App() {
     ]);
     setSelectedGift(gift);
     setScreen(SCREENS.CELEBRATION);
+
+    // Fire-and-forget: notify backend (non-blocking)
+    createRedemption(gift.id);
   }, []);
 
   const handleCelebrationContinue = useCallback(() => {

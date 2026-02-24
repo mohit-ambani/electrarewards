@@ -1,0 +1,144 @@
+<%- include('layout-head', { title, activePage }) %>
+
+<% const statusLabels = {
+  redeemed: { label: 'Redeemed', color: 'bg-blue-100 text-blue-700', icon: '🎉' },
+  accepted: { label: 'Accepted', color: 'bg-indigo-100 text-indigo-700', icon: '✅' },
+  packed: { label: 'Packed', color: 'bg-purple-100 text-purple-700', icon: '📦' },
+  in_transit: { label: 'In Transit', color: 'bg-cyan-100 text-cyan-700', icon: '🚚' },
+  out_for_delivery: { label: 'Out for Delivery', color: 'bg-amber-100 text-amber-700', icon: '🛵' },
+  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-700', icon: '✅' },
+}; %>
+
+<a href="/admin/redemptions" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6">
+  &larr; Back to Redemptions
+</a>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Left Column: Order Info -->
+  <div class="lg:col-span-2 space-y-6">
+    <!-- Order Header -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800"><%= redemption.order_id %></h3>
+          <p class="text-sm text-gray-500">Created <%= new Date(redemption.created_at).toLocaleString() %></p>
+        </div>
+        <span class="status-badge status-<%= redemption.status %> text-sm">
+          <%= statusLabels[redemption.status].label %>
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+        <div>
+          <p class="text-xs text-gray-500">Docket Number</p>
+          <p class="text-sm font-mono font-medium text-gray-800"><%= redemption.docket_number %></p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">OTP</p>
+          <p class="text-sm font-mono font-medium text-gray-800"><%= redemption.otp %></p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Points Spent</p>
+          <p class="text-sm font-medium text-gray-800"><%= redemption.points_spent.toLocaleString() %> ⚡</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Last Updated</p>
+          <p class="text-sm text-gray-800"><%= new Date(redemption.updated_at).toLocaleString() %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 class="font-semibold text-gray-800 mb-4">Status Timeline</h3>
+      <div class="space-y-4">
+        <% STATUS_FLOW.forEach(function(s, idx) {
+          const logEntry = statusLog.find(function(l) { return l.status === s; });
+          const isActive = s === redemption.status;
+          const isPast = STATUS_FLOW.indexOf(s) <= STATUS_FLOW.indexOf(redemption.status);
+        %>
+          <div class="flex items-start gap-4">
+            <div class="flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm
+                          <%= isPast ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400' %>
+                          <%= isActive ? 'ring-2 ring-orange-300' : '' %>">
+                <%= isPast ? '✓' : (idx + 1) %>
+              </div>
+              <% if (idx < STATUS_FLOW.length - 1) { %>
+                <div class="w-0.5 h-8 <%= isPast ? 'bg-orange-300' : 'bg-gray-200' %>"></div>
+              <% } %>
+            </div>
+            <div class="flex-1 pb-2">
+              <p class="text-sm font-medium <%= isPast ? 'text-gray-800' : 'text-gray-400' %>">
+                <%= statusLabels[s].icon %> <%= statusLabels[s].label %>
+              </p>
+              <% if (logEntry) { %>
+                <p class="text-xs text-gray-500 mt-0.5"><%= logEntry.note %></p>
+                <p class="text-xs text-gray-400"><%= new Date(logEntry.created_at).toLocaleString() %></p>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- User Info -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 class="font-semibold text-gray-800 mb-3">Customer</h3>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
+          <%= redemption.user_name.charAt(0) %>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-800"><%= redemption.user_name %></p>
+          <p class="text-xs text-gray-500"><%= redemption.user_email %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Gift Card + Actions -->
+  <div class="space-y-6">
+    <!-- Gift Card -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="bg-gradient-to-br from-orange-400 to-amber-500 p-8 text-center">
+        <span class="text-6xl"><%= redemption.gift_image %></span>
+      </div>
+      <div class="p-4">
+        <h4 class="font-semibold text-gray-800"><%= redemption.gift_name %></h4>
+        <p class="text-xs text-gray-500 mt-1"><%= redemption.gift_description %></p>
+        <div class="flex items-center justify-between mt-3">
+          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 capitalize"><%= redemption.gift_category %></span>
+          <span class="text-sm font-medium text-orange-600"><%= redemption.gift_points.toLocaleString() %> ⚡</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advance Status -->
+    <% if (nextStatus) { %>
+      <div class="bg-white rounded-xl border border-gray-200 p-4">
+        <h4 class="font-semibold text-gray-800 mb-3">Advance Status</h4>
+        <p class="text-xs text-gray-500 mb-3">
+          Move from <strong><%= statusLabels[redemption.status].label %></strong>
+          to <strong><%= statusLabels[nextStatus].label %></strong>
+        </p>
+        <form id="advance-status-form" class="space-y-3">
+          <textarea name="note" placeholder="Optional note..." rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+          <button type="submit"
+                  class="w-full px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
+                  data-redemption-id="<%= redemption.id %>">
+            Advance to <%= statusLabels[nextStatus].label %>
+          </button>
+        </form>
+      </div>
+    <% } else { %>
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+        <p class="text-green-700 font-medium">✅ Delivered</p>
+        <p class="text-xs text-green-600 mt-1">This order has been completed.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('layout-foot') %>
