@@ -13,7 +13,7 @@ export default function BottomNav({ active, onSelect }) {
       initial={{ y: 80 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100, delay: 0.5 }}
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40 bg-dark-950/90 backdrop-blur-xl border-t border-white/5"
+      className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[430px] z-40 bg-dark-950/90 backdrop-blur-xl border-t border-white/5"
     >
       <div className="flex items-center justify-around px-2 py-2">
         {tabs.map((tab) => (

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-export default function Header({ userPoints, onProfileClick }) {
+export default function Header({ userPoints, onProfileClick, onNotificationsClick, notificationCount }) {
   return (
     <motion.header
       initial={{ y: -60, opacity: 0 }}
@@ -24,6 +24,25 @@ export default function Header({ userPoints, onProfileClick }) {
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
+        {/* Bell Icon */}
+        <motion.button
+          onClick={onNotificationsClick}
+          whileTap={{ scale: 0.9 }}
+          className="relative w-9 h-9 rounded-xl bg-dark-800/80 border border-white/5 flex items-center justify-center"
+        >
+          <span className="text-base">🔔</span>
+          {notificationCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center"
+            >
+              <span className="text-[8px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
+            </motion.div>
+          )}
+        </motion.button>
+
         {/* Points Badge */}
         <motion.button
           onClick={onProfileClick}
@@ -44,6 +63,7 @@ export default function Header({ userPoints, onProfileClick }) {
             <p className="text-[9px] text-dark-400">points</p>
           </div>
         </motion.button>
+        </div>
       </div>
     </motion.header>
   );

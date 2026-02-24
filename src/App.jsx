@@ -14,6 +14,7 @@ import BottomNav from './components/BottomNav';
 import ProfileScreen from './components/ProfileScreen';
 import RewardsScreen from './components/RewardsScreen';
 import BannerPage from './components/BannerPage';
+import NotificationsScreen from './components/NotificationsScreen';
 
 // App screens
 const SCREENS = {
@@ -28,6 +29,7 @@ const SCREENS = {
   BANNER_PREMIUM: 'banner_premium',
   BANNER_TOOLS: 'banner_tools',
   BANNER_NEW_ARRIVALS: 'banner_new_arrivals',
+  NOTIFICATIONS: 'notifications',
 };
 
 const BANNER_SCREEN_MAP = {
@@ -143,6 +145,8 @@ export default function App() {
             <Header
               userPoints={userPoints}
               onProfileClick={() => setScreen(SCREENS.PROFILE)}
+              onNotificationsClick={() => setScreen(SCREENS.NOTIFICATIONS)}
+              notificationCount={redemptionHistory.length * 4}
             />
             <HeroBanner onBannerClick={handleBannerClick} />
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -210,6 +214,18 @@ export default function App() {
             redemptionHistory={redemptionHistory}
             activeTab={activeTab}
             onTabSelect={handleTabSelect}
+          />
+        )}
+
+        {/* Notifications */}
+        {screen === SCREENS.NOTIFICATIONS && (
+          <NotificationsScreen
+            key="notifications"
+            redemptionHistory={redemptionHistory}
+            onBack={() => {
+              setScreen(SCREENS.CATALOGUE);
+              setActiveTab('home');
+            }}
           />
         )}
 
