@@ -1,121 +1,191 @@
-import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import React from 'react';
+import styled from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper';
+import 'swiper/swiper.min.css';
+import 'swiper/css/pagination';
 
 const banners = [
   {
     id: 'premium',
     title: 'Premium Rewards',
     subtitle: 'Redeem your hard-earned points for exclusive gifts',
-    gradient: 'from-brand-600 via-brand-500 to-amber-500',
+    gradient: 'linear-gradient(135deg, #ea580c, #fb923c, #f59e0b)',
     emoji: '🏆',
   },
   {
     id: 'tools',
     title: 'Pro Tools Collection',
     subtitle: 'Top-tier equipment trusted by master electricians',
-    gradient: 'from-electric-600 via-electric-500 to-cyan-500',
+    gradient: 'linear-gradient(135deg, #2563eb, #3b82f6, #06b6d4)',
     emoji: '🔧',
   },
   {
     id: 'new_arrivals',
     title: 'New Arrivals',
     subtitle: 'Latest gadgets and premium electronics added!',
-    gradient: 'from-purple-600 via-violet-500 to-fuchsia-500',
+    gradient: 'linear-gradient(135deg, #9333ea, #8b5cf6, #d946ef)',
     emoji: '✨',
   },
 ];
 
-export default function HeroBanner({ onBannerClick }) {
-  const [current, setCurrent] = useState(0);
+const BannerWrapper = styled.div`
+  padding: 16px 16px 0;
+  overflow: hidden;
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent(prev => (prev + 1) % banners.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  .swiper {
+    border-radius: 16px;
+    overflow: hidden;
+  }
 
-  const banner = banners[current];
+  .swiper-pagination {
+    bottom: 10px !important;
+  }
+
+  .swiper-pagination-bullet {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+
+  .swiper-pagination-bullet-active {
+    width: 20px;
+    border-radius: 3px;
+    background: #ffffff;
+  }
+`;
+
+const Slide = styled.div`
+  position: relative;
+  padding: 22px 20px;
+  background: ${(props) => props.$gradient};
+  cursor: pointer;
+  overflow: hidden;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+
+  &:active {
+    opacity: 0.95;
+  }
+`;
+
+const DecorCircle1 = styled.div`
+  position: absolute;
+  right: -24px;
+  top: -24px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  filter: blur(1px);
+`;
+
+const DecorCircle2 = styled.div`
+  position: absolute;
+  right: -8px;
+  bottom: -32px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+`;
+
+const DecorCircle3 = styled.div`
+  position: absolute;
+  left: 50%;
+  top: -16px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+`;
+
+const SlideContent = styled.div`
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const TextBlock = styled.div`
+  flex: 1;
+`;
+
+const BannerTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+`;
+
+const BannerSubtitle = styled.p`
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 6px 0 0;
+  max-width: 200px;
+  line-height: 1.4;
+`;
+
+const ExploreText = styled.p`
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 10px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const Emoji = styled.span`
+  font-size: 48px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+`;
+
+const HeroBanner = () => {
+  const history = useHistory();
 
   return (
-    <div className="px-4 pt-4">
-      <motion.div
-        key={current}
-        initial={{ opacity: 0, scale: 0.95, x: 20 }}
-        animate={{ opacity: 1, scale: 1, x: 0 }}
-        exit={{ opacity: 0, scale: 0.95, x: -20 }}
-        transition={{ duration: 0.5 }}
-        onClick={() => onBannerClick?.(banner.id)}
-        className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${banner.gradient} p-5 cursor-pointer active:scale-[0.98] transition-transform`}
+    <BannerWrapper>
+      <Swiper
+        modules={[Autoplay, Pagination]}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        pagination={{ clickable: true }}
+        loop
+        spaceBetween={0}
+        slidesPerView={1}
       >
-        {/* Decorative circles */}
-        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 blur-sm" />
-        <div className="absolute -right-2 -bottom-8 w-24 h-24 rounded-full bg-white/5" />
-        <div className="absolute left-1/2 -top-4 w-16 h-16 rounded-full bg-white/5" />
-
-        {/* Shimmer overlay */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: [-200, 400] }}
-          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-        />
-
-        <div className="relative flex items-center justify-between">
-          <div className="flex-1">
-            <motion.h2
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl font-display font-extrabold text-white"
+        {banners.map((banner) => (
+          <SwiperSlide key={banner.id}>
+            <Slide
+              $gradient={banner.gradient}
+              onClick={() => history.push(`/banner/${banner.id}`)}
             >
-              {banner.title}
-            </motion.h2>
-            <motion.p
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-xs text-white/80 mt-1 max-w-[200px] leading-relaxed"
-            >
-              {banner.subtitle}
-            </motion.p>
-            {/* Explore indicator */}
-            <motion.p
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-[11px] font-semibold text-white/90 mt-2 flex items-center gap-1"
-            >
-              Explore
-              <motion.span
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 1.2, repeat: Infinity }}
-              >
-                →
-              </motion.span>
-            </motion.p>
-          </div>
-          <motion.span
-            initial={{ scale: 0, rotate: -30 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', delay: 0.3 }}
-            className="text-5xl"
-          >
-            {banner.emoji}
-          </motion.span>
-        </div>
-
-        {/* Dots */}
-        <div className="flex gap-1.5 mt-4">
-          {banners.map((_, i) => (
-            <motion.div
-              key={i}
-              className={`h-1 rounded-full transition-all duration-300 ${
-                i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/30'
-              }`}
-            />
-          ))}
-        </div>
-      </motion.div>
-    </div>
+              <DecorCircle1 />
+              <DecorCircle2 />
+              <DecorCircle3 />
+              <SlideContent>
+                <TextBlock>
+                  <BannerTitle>{banner.title}</BannerTitle>
+                  <BannerSubtitle>{banner.subtitle}</BannerSubtitle>
+                  <ExploreText>
+                    Explore <span>&rarr;</span>
+                  </ExploreText>
+                </TextBlock>
+                <Emoji>{banner.emoji}</Emoji>
+              </SlideContent>
+            </Slide>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </BannerWrapper>
   );
-}
+};
+
+export default HeroBanner;

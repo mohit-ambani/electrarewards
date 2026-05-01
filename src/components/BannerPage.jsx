@@ -1,267 +1,534 @@
-import { motion } from 'framer-motion';
-import { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory, useParams } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
+import anime from 'animejs';
+import useAppStore from '../store/useAppStore';
 import { gifts } from '../data/gifts';
+import { twGradient } from '../utils/colors';
+
+const shimmer = keyframes`
+  0% { transform: translateX(-400px); }
+  100% { transform: translateX(400px); }
+`;
+
+const floatBubble = keyframes`
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-15px) translateX(8px); }
+`;
+
+const pulseNew = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+`;
 
 const PAGE_CONFIG = {
   premium: {
     title: 'Premium Rewards',
     subtitle: 'Exclusive high-value gifts for top earners',
-    gradient: 'from-amber-500 via-yellow-500 to-orange-500',
-    accentColor: 'text-amber-400',
-    badgeColor: 'bg-amber-500/20 text-amber-400',
-    cardAccent: 'border-amber-500/20',
+    gradient: 'linear-gradient(135deg, #f59e0b, #eab308, #f97316)',
     emoji: '👑',
     filterFn: (g) => g.category === 'premium' || g.points >= 10000,
-    shimmerColor: 'via-amber-300/20',
+    accentColor: '#fbbf24',
+    badgeBg: 'rgba(245,158,11,0.2)',
   },
   tools: {
     title: 'Pro Tools Collection',
     subtitle: 'Top-tier equipment for master electricians',
-    gradient: 'from-electric-600 via-electric-500 to-cyan-500',
-    accentColor: 'text-electric-400',
-    badgeColor: 'bg-electric-500/20 text-electric-400',
-    cardAccent: 'border-electric-500/20',
+    gradient: 'linear-gradient(135deg, #2563eb, #3b82f6, #06b6d4)',
     emoji: '🔧',
     filterFn: (g) => g.category === 'tools',
-    shimmerColor: 'via-electric-300/20',
+    accentColor: '#60a5fa',
+    badgeBg: 'rgba(59,130,246,0.2)',
   },
   new_arrivals: {
     title: 'New Arrivals',
     subtitle: 'Latest additions to the catalogue',
-    gradient: 'from-purple-600 via-violet-500 to-fuchsia-500',
-    accentColor: 'text-purple-400',
-    badgeColor: 'bg-purple-500/20 text-purple-400',
-    cardAccent: 'border-purple-500/20',
+    gradient: 'linear-gradient(135deg, #7c3aed, #8b5cf6, #d946ef)',
     emoji: '✨',
-    filterFn: (g) => ['Hot Pick', 'Exclusive', 'Top Rated', 'Premium'].includes(g.tag),
-    shimmerColor: 'via-purple-300/20',
+    filterFn: (g) =>
+      ['Hot Pick', 'Exclusive', 'Top Rated', 'Premium'].includes(g.tag),
+    accentColor: '#c084fc',
+    badgeBg: 'rgba(168,85,247,0.2)',
   },
 };
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
+const Wrapper = styled.div`
+  min-height: 100vh;
+  background: #020617;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 96px;
+`;
 
-const cardVariant = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  show: { opacity: 1, y: 0, scale: 1 },
-};
+const HeaderArea = styled.div`
+  position: relative;
+  overflow: hidden;
+  background: ${(p) => p.gradient};
+  padding: 48px 20px 40px;
+`;
 
-function FeaturedCard({ gift, config, onSelect }) {
-  return (
-    <motion.div
-      variants={cardVariant}
-      whileTap={{ scale: 0.97 }}
-      onClick={() => onSelect(gift)}
-      className={`shrink-0 w-56 bg-glass rounded-2xl overflow-hidden border ${config.cardAccent} cursor-pointer`}
-    >
-      <div className={`relative h-36 bg-gradient-to-br ${gift.color} flex items-center justify-center overflow-hidden`}>
-        <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
-        <div className="absolute -left-2 -bottom-4 w-14 h-14 rounded-full bg-white/5" />
+const HeaderShimmer = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: ${shimmer} 3s ease-in-out infinite;
+`;
 
-        {/* Shimmer overlay */}
-        <motion.div
-          className={`absolute inset-0 bg-gradient-to-r from-transparent ${config.shimmerColor} to-transparent`}
-          animate={{ x: [-250, 250] }}
-          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
-        />
+const HeaderBubble = styled.div`
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,${(p) => p.opacity || 0.1});
+  width: ${(p) => p.size}px;
+  height: ${(p) => p.size}px;
+  top: ${(p) => p.top || 'auto'};
+  right: ${(p) => p.right || 'auto'};
+  left: ${(p) => p.left || 'auto'};
+  bottom: ${(p) => p.bottom || 'auto'};
+  filter: blur(2px);
+  animation: ${floatBubble} ${(p) => p.dur || 5}s ease-in-out infinite;
+`;
 
-        <span className="text-5xl relative z-10 drop-shadow-lg">{gift.image}</span>
+const BackBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 10;
+`;
 
-        {gift.tag && (
-          <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[9px] font-bold ${config.badgeColor}`}>
-            {gift.tag}
-          </span>
-        )}
-      </div>
+const HeaderRow = styled.div`
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
 
-      <div className="p-3">
-        <p className="text-xs font-bold text-white truncate">{gift.name}</p>
-        <p className={`text-sm font-display font-extrabold mt-1 ${config.accentColor}`}>
-          ⚡ {gift.points.toLocaleString()}
-        </p>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-[10px] text-amber-400">★</span>
-          <span className="text-[10px] text-dark-400">{gift.rating}</span>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const HeaderText = styled.div``;
 
-function GridCard({ gift, config, onSelect, isNewArrivals }) {
-  return (
-    <motion.div
-      variants={cardVariant}
-      whileTap={{ scale: 0.97 }}
-      onClick={() => onSelect(gift)}
-      className={`bg-glass rounded-xl overflow-hidden border ${config.cardAccent} cursor-pointer`}
-    >
-      <div className={`relative h-28 bg-gradient-to-br ${gift.color} flex items-center justify-center overflow-hidden`}>
-        <div className="absolute -right-3 -top-3 w-14 h-14 rounded-full bg-white/10" />
-        <span className="text-4xl relative z-10 drop-shadow-lg">{gift.image}</span>
+const HeaderTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(15px);
+`;
 
-        {isNewArrivals && (
-          <motion.span
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-fuchsia-500 text-[8px] font-bold text-white"
-          >
-            NEW
-          </motion.span>
-        )}
-      </div>
+const HeaderSub = styled.p`
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4px;
+  max-width: 220px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(15px);
+`;
 
-      <div className="p-2.5">
-        <p className="text-[11px] font-semibold text-white truncate">{gift.name}</p>
-        <div className="flex items-center justify-between mt-1.5">
-          <p className={`text-xs font-display font-extrabold ${config.accentColor}`}>
-            ⚡ {gift.points.toLocaleString()}
-          </p>
-          <div className="flex items-center gap-0.5">
-            <span className="text-[9px] text-amber-400">★</span>
-            <span className="text-[9px] text-dark-400">{gift.rating}</span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const ItemCount = styled.p`
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 8px;
+  opacity: 0;
+`;
 
-export default function BannerPage({ pageType, onBack, onGiftSelect }) {
-  const scrollRef = useRef(null);
-  const config = PAGE_CONFIG[pageType];
+const HeaderEmoji = styled.span`
+  font-size: 48px;
+  opacity: 0;
+  transform: scale(0) rotate(-30deg);
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 12px;
+`;
+
+const FeaturedScroll = styled.div`
+  margin: -20px 0 0;
+  padding: 0 16px;
+  position: relative;
+  z-index: 10;
+`;
+
+const FeaturedRow = styled.div`
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const FeaturedCard = styled.div`
+  flex-shrink: 0;
+  width: 220px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.2s;
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
+const FeaturedImage = styled.div`
+  position: relative;
+  height: 140px;
+  background: ${(p) => p.gradient};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+`;
+
+const FeaturedBubble = styled.div`
+  position: absolute;
+  right: -16px;
+  top: -16px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+`;
+
+const FeaturedEmoji = styled.span`
+  font-size: 48px;
+  position: relative;
+  z-index: 5;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+`;
+
+const FeaturedTag = styled.span`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  background: ${(p) => p.bg};
+  color: ${(p) => p.color};
+`;
+
+const FeaturedInfo = styled.div`
+  padding: 12px;
+`;
+
+const FeaturedName = styled.p`
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const FeaturedPoints = styled.p`
+  font-size: 14px;
+  font-weight: 800;
+  color: ${(p) => p.color};
+  margin-top: 4px;
+`;
+
+const FeaturedRating = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+`;
+
+const RatingStar = styled.span`
+  font-size: 10px;
+  color: #fbbf24;
+`;
+
+const RatingVal = styled.span`
+  font-size: 10px;
+  color: #94a3b8;
+`;
+
+const GridSection = styled.div`
+  padding: 20px 16px 0;
+`;
+
+const GiftGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+`;
+
+const GridCard = styled.div`
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.2s;
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
+const GridImage = styled.div`
+  position: relative;
+  height: 112px;
+  background: ${(p) => p.gradient};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+`;
+
+const GridBubble = styled.div`
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+`;
+
+const GridEmoji = styled.span`
+  font-size: 40px;
+  position: relative;
+  z-index: 5;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+`;
+
+const NewBadge = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #d946ef;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  animation: ${pulseNew} 1.5s ease-in-out infinite;
+`;
+
+const GridInfo = styled.div`
+  padding: 10px;
+`;
+
+const GridName = styled.p`
+  font-size: 11px;
+  font-weight: 600;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const GridBottom = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+`;
+
+const GridPoints = styled.p`
+  font-size: 12px;
+  font-weight: 800;
+  color: ${(p) => p.color};
+`;
+
+export default function BannerPage() {
+  const history = useHistory();
+  const { type } = useParams();
+  const { setSelectedGift } = useAppStore();
+
+  const config = PAGE_CONFIG[type] || PAGE_CONFIG.premium;
   const filteredGifts = gifts.filter(config.filterFn);
   const featured = filteredGifts.slice(0, 5);
-  const isNewArrivals = pageType === 'new_arrivals';
+  const isNewArrivals = type === 'new_arrivals';
+
+  const titleRef = useRef(null);
+  const subRef = useRef(null);
+  const countRef = useRef(null);
+  const emojiRef = useRef(null);
+  const featuredRefs = useRef([]);
+  const gridRefs = useRef([]);
+
+  useEffect(() => {
+    if (titleRef.current) {
+      anime({
+        targets: titleRef.current,
+        translateY: [15, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 150,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    if (subRef.current) {
+      anime({
+        targets: subRef.current,
+        translateY: [15, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 250,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    if (countRef.current) {
+      anime({
+        targets: countRef.current,
+        opacity: [0, 1],
+        duration: 400,
+        delay: 350,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    if (emojiRef.current) {
+      anime({
+        targets: emojiRef.current,
+        scale: [0, 1],
+        rotate: [-30, 0],
+        opacity: [0, 1],
+        duration: 600,
+        delay: 300,
+        easing: 'spring(1, 80, 10, 0)',
+      });
+    }
+
+    featuredRefs.current.forEach((el, i) => {
+      if (!el) return;
+      anime({
+        targets: el,
+        translateY: [30, 0],
+        scale: [0.95, 1],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 300 + i * 60,
+        easing: 'easeOutExpo',
+      });
+    });
+
+    gridRefs.current.forEach((el, i) => {
+      if (!el) return;
+      anime({
+        targets: el,
+        translateY: [30, 0],
+        scale: [0.95, 1],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 400 + i * 60,
+        easing: 'easeOutExpo',
+      });
+    });
+  }, [type]);
+
+  const handleGiftClick = (gift) => {
+    setSelectedGift(gift);
+    history.push(`/gift/${gift.id}`);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-dark-950 max-w-[430px] mx-auto pb-24"
-    >
-      {/* Gradient Header with Parallax */}
-      <div className={`relative overflow-hidden bg-gradient-to-br ${config.gradient} px-5 pt-12 pb-10`}>
-        {/* Decorative floating circles */}
-        <motion.div
-          animate={{ y: [0, -15, 0], x: [0, 8, 0] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-sm"
-        />
-        <motion.div
-          animate={{ y: [0, 10, 0], x: [0, -6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-          className="absolute -left-8 bottom-0 w-32 h-32 rounded-full bg-white/5"
-        />
-        <motion.div
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
-          className="absolute right-1/3 top-6 w-16 h-16 rounded-full bg-white/5"
-        />
+    <Wrapper>
+      <HeaderArea gradient={config.gradient}>
+        <HeaderShimmer />
+        <HeaderBubble size={192} opacity={0.1} top="-40px" right="-40px" dur={5} />
+        <HeaderBubble size={128} opacity={0.05} bottom="0" left="-32px" dur={4} />
+        <HeaderBubble size={64} opacity={0.05} top="24px" right="33%" dur={3.5} />
 
-        {/* Shimmer */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: [-400, 400] }}
-          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-        />
+        <BackBtn onClick={() => history.push('/home')}>
+          <FiArrowLeft size={18} /> Back
+        </BackBtn>
 
-        {/* Back button */}
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={onBack}
-          className="relative z-10 flex items-center gap-1 text-white/90 text-sm font-medium mb-4"
-        >
-          <span className="text-lg">←</span> Back
-        </motion.button>
+        <HeaderRow>
+          <HeaderText>
+            <HeaderTitle ref={titleRef}>{config.title}</HeaderTitle>
+            <HeaderSub ref={subRef}>{config.subtitle}</HeaderSub>
+            <ItemCount ref={countRef}>{filteredGifts.length} items</ItemCount>
+          </HeaderText>
+          <HeaderEmoji ref={emojiRef}>{config.emoji}</HeaderEmoji>
+        </HeaderRow>
+      </HeaderArea>
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div>
-            <motion.h1
-              initial={{ y: 15, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="text-2xl font-display font-extrabold text-white"
-            >
-              {config.title}
-            </motion.h1>
-            <motion.p
-              initial={{ y: 15, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="text-xs text-white/80 mt-1 max-w-[220px] leading-relaxed"
-            >
-              {config.subtitle}
-            </motion.p>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.35 }}
-              className="text-[10px] text-white/60 mt-2"
-            >
-              {filteredGifts.length} items
-            </motion.p>
-          </div>
-          <motion.span
-            initial={{ scale: 0, rotate: -30 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', delay: 0.3 }}
-            className="text-5xl"
-          >
-            {config.emoji}
-          </motion.span>
-        </div>
-      </div>
-
-      {/* Featured Carousel */}
-      <div className="px-4 -mt-5 relative z-10">
-        <h2 className="text-sm font-display font-bold text-white mb-3">Featured</h2>
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          ref={scrollRef}
-          className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {featured.map((gift) => (
+      <FeaturedScroll>
+        <SectionTitle>Featured</SectionTitle>
+        <FeaturedRow>
+          {featured.map((gift, i) => (
             <FeaturedCard
               key={gift.id}
-              gift={gift}
-              config={config}
-              onSelect={onGiftSelect}
-            />
+              ref={(el) => (featuredRefs.current[i] = el)}
+              onClick={() => handleGiftClick(gift)}
+            >
+              <FeaturedImage gradient={twGradient(gift.color)}>
+                <FeaturedBubble />
+                <FeaturedEmoji>{gift.image}</FeaturedEmoji>
+                {gift.tag && (
+                  <FeaturedTag bg={config.badgeBg} color={config.accentColor}>
+                    {gift.tag}
+                  </FeaturedTag>
+                )}
+              </FeaturedImage>
+              <FeaturedInfo>
+                <FeaturedName>{gift.name}</FeaturedName>
+                <FeaturedPoints color={config.accentColor}>
+                  ⚡ {gift.points.toLocaleString()}
+                </FeaturedPoints>
+                <FeaturedRating>
+                  <RatingStar>★</RatingStar>
+                  <RatingVal>{gift.rating}</RatingVal>
+                </FeaturedRating>
+              </FeaturedInfo>
+            </FeaturedCard>
           ))}
-        </motion.div>
-      </div>
+        </FeaturedRow>
+      </FeaturedScroll>
 
-      {/* Full Grid */}
-      <div className="px-4 mt-5">
-        <h2 className="text-sm font-display font-bold text-white mb-3">All {config.title}</h2>
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-2 gap-3"
-        >
-          {filteredGifts.map((gift) => (
+      <GridSection>
+        <SectionTitle>All {config.title}</SectionTitle>
+        <GiftGrid>
+          {filteredGifts.map((gift, i) => (
             <GridCard
               key={gift.id}
-              gift={gift}
-              config={config}
-              onSelect={onGiftSelect}
-              isNewArrivals={isNewArrivals}
-            />
+              ref={(el) => (gridRefs.current[i] = el)}
+              onClick={() => handleGiftClick(gift)}
+            >
+              <GridImage gradient={twGradient(gift.color)}>
+                <GridBubble />
+                <GridEmoji>{gift.image}</GridEmoji>
+                {isNewArrivals && <NewBadge>NEW</NewBadge>}
+              </GridImage>
+              <GridInfo>
+                <GridName>{gift.name}</GridName>
+                <GridBottom>
+                  <GridPoints color={config.accentColor}>
+                    ⚡ {gift.points.toLocaleString()}
+                  </GridPoints>
+                  <FeaturedRating>
+                    <RatingStar>★</RatingStar>
+                    <RatingVal>{gift.rating}</RatingVal>
+                  </FeaturedRating>
+                </GridBottom>
+              </GridInfo>
+            </GridCard>
           ))}
-        </motion.div>
-      </div>
-    </motion.div>
+        </GiftGrid>
+      </GridSection>
+    </Wrapper>
   );
 }

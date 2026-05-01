@@ -1,17 +1,222 @@
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
+import anime from 'animejs';
+import useAppStore from '../store/useAppStore';
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
+const floatParticle = keyframes`
+  0%, 100% { transform: translateY(0); opacity: 0; }
+  50% { transform: translateY(-50px); opacity: 1; }
+`;
+
+const bounce = keyframes`
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+`;
+
+const notifColorMap = {
+  redeemed: {
+    bg: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.03))',
+    border: 'rgba(249,115,22,0.25)',
+  },
+  confirmed: {
+    bg: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.03))',
+    border: 'rgba(34,197,94,0.25)',
+  },
+  shipped: {
+    bg: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.03))',
+    border: 'rgba(59,130,246,0.25)',
+  },
+  delivered: {
+    bg: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(168,85,247,0.03))',
+    border: 'rgba(168,85,247,0.25)',
   },
 };
 
-const item = {
-  hidden: { opacity: 0, x: -20 },
-  show: { opacity: 1, x: 0 },
-};
+const Wrapper = styled.div`
+  min-height: 100vh;
+  background: #020617;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 96px;
+`;
+
+const HeaderGradient = styled.div`
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4338ca, #8b5cf6, #7c3aed);
+  padding: 48px 20px 32px;
+`;
+
+const HeaderBubble1 = styled.div`
+  position: absolute;
+  right: -32px;
+  top: -32px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  filter: blur(2px);
+`;
+
+const HeaderBubble2 = styled.div`
+  position: absolute;
+  left: -24px;
+  bottom: 0;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+`;
+
+const HeaderParticle = styled.div`
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  left: ${(p) => 20 + p.idx * 15}%;
+  top: ${(p) => 50 + (p.idx % 3) * 10}%;
+  animation: ${floatParticle} 3s ease-in-out ${(p) => p.idx * 0.4}s infinite;
+`;
+
+const BackBtn = styled.button`
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 10;
+`;
+
+const HeaderContent = styled.div`
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0);
+`;
+
+const BellEmoji = styled.span`
+  font-size: 40px;
+`;
+
+const HeaderTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 8px;
+`;
+
+const HeaderSub = styled.p`
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4px;
+`;
+
+const ContentArea = styled.div`
+  margin: -16px 16px 0;
+  position: relative;
+  z-index: 10;
+`;
+
+const EmptyState = styled.div`
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.9);
+`;
+
+const BounceEmoji = styled.div`
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: ${bounce} 2s ease-in-out infinite;
+`;
+
+const EmptyTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+`;
+
+const EmptyDesc = styled.p`
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 8px;
+  max-width: 240px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+`;
+
+const NotifList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const NotifCard = styled.div`
+  background: ${(p) => p.bg};
+  border: 1px solid ${(p) => p.borderColor};
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  opacity: 0;
+  transform: translateX(-20px);
+`;
+
+const NotifIcon = styled.div`
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+`;
+
+const NotifBody = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const NotifHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+const NotifTitle = styled.p`
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+`;
+
+const NotifTime = styled.p`
+  font-size: 10px;
+  color: #94a3b8;
+  flex-shrink: 0;
+`;
+
+const NotifMessage = styled.p`
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-top: 2px;
+  line-height: 1.4;
+`;
 
 function getNotifications(redemptionHistory) {
   const notifs = [];
@@ -26,8 +231,6 @@ function getNotifications(redemptionHistory) {
       title: 'Gift Redeemed!',
       message: `You redeemed ${entry.name} for ${entry.points.toLocaleString()} points.`,
       time: time.getTime(),
-      color: 'from-brand-500/20 to-brand-500/5',
-      accent: 'border-brand-500/30',
     });
 
     notifs.push({
@@ -37,8 +240,6 @@ function getNotifications(redemptionHistory) {
       title: 'Order Confirmed',
       message: `Your order for ${entry.name} has been confirmed and is being processed.`,
       time: time.getTime() + 1000,
-      color: 'from-green-500/20 to-green-500/5',
-      accent: 'border-green-500/30',
     });
 
     notifs.push({
@@ -48,8 +249,6 @@ function getNotifications(redemptionHistory) {
       title: 'Gift Shipped',
       message: `${entry.name} is on its way! Track your delivery in the app.`,
       time: time.getTime() + 2000,
-      color: 'from-blue-500/20 to-blue-500/5',
-      accent: 'border-blue-500/30',
     });
 
     notifs.push({
@@ -59,8 +258,6 @@ function getNotifications(redemptionHistory) {
       title: 'Gift Delivered',
       message: `${entry.name} has been delivered. Enjoy your reward!`,
       time: time.getTime() + 3000,
-      color: 'from-purple-500/20 to-purple-500/5',
-      accent: 'border-purple-500/30',
     });
   });
 
@@ -80,113 +277,106 @@ function formatTime(timestamp) {
   });
 }
 
-export default function NotificationsScreen({ redemptionHistory, onBack }) {
+export default function NotificationsScreen() {
+  const history = useHistory();
+  const { redemptionHistory } = useAppStore();
   const notifications = getNotifications(redemptionHistory);
 
+  const headerRef = useRef(null);
+  const emptyRef = useRef(null);
+  const notifRefs = useRef([]);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      anime({
+        targets: headerRef.current,
+        scale: [0, 1],
+        opacity: [0, 1],
+        duration: 600,
+        easing: 'spring(1, 80, 10, 0)',
+      });
+    }
+
+    if (notifications.length === 0 && emptyRef.current) {
+      anime({
+        targets: emptyRef.current,
+        scale: [0.9, 1],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 300,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    notifRefs.current.forEach((el, i) => {
+      if (!el) return;
+      anime({
+        targets: el,
+        translateX: [-20, 0],
+        opacity: [0, 1],
+        duration: 400,
+        delay: 200 + i * 60,
+        easing: 'easeOutExpo',
+      });
+    });
+  }, [notifications.length]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-dark-950 max-w-[430px] mx-auto pb-24"
-    >
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-500 to-purple-600 px-5 pt-12 pb-8">
-        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10 blur-sm" />
-        <div className="absolute -left-6 bottom-0 w-28 h-28 rounded-full bg-white/5" />
-
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={onBack}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white text-lg"
-        >
-          ←
-        </motion.button>
-
+    <Wrapper>
+      <HeaderGradient>
+        <HeaderBubble1 />
+        <HeaderBubble2 />
         {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1.5 h-1.5 rounded-full bg-white/30"
-            animate={{
-              y: [0, -50, 0],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: 3,
-              delay: i * 0.4,
-              repeat: Infinity,
-            }}
-            style={{
-              left: `${20 + i * 15}%`,
-              top: `${50 + (i % 3) * 10}%`,
-            }}
-          />
+          <HeaderParticle key={i} idx={i} />
         ))}
 
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
-          className="text-center relative z-10"
-        >
-          <span className="text-4xl">🔔</span>
-          <h1 className="text-2xl font-display font-extrabold text-white mt-2">
-            Notifications
-          </h1>
-          <p className="text-sm text-white/80 mt-1">
-            {notifications.length} update{notifications.length !== 1 ? 's' : ''}
-          </p>
-        </motion.div>
-      </div>
+        <BackBtn onClick={() => history.push('/home')}>
+          <FiArrowLeft />
+        </BackBtn>
 
-      <div className="px-4 -mt-4 relative z-10">
+        <HeaderContent ref={headerRef}>
+          <BellEmoji>🔔</BellEmoji>
+          <HeaderTitle>Notifications</HeaderTitle>
+          <HeaderSub>
+            {notifications.length} update{notifications.length !== 1 ? 's' : ''}
+          </HeaderSub>
+        </HeaderContent>
+      </HeaderGradient>
+
+      <ContentArea>
         {notifications.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-glass rounded-2xl p-8 text-center"
-          >
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-5xl mb-4"
-            >
-              🔕
-            </motion.div>
-            <h3 className="text-base font-display font-bold text-white">
-              No Notifications Yet
-            </h3>
-            <p className="text-xs text-dark-400 mt-2 max-w-[240px] mx-auto leading-relaxed">
+          <EmptyState ref={emptyRef}>
+            <BounceEmoji>🔕</BounceEmoji>
+            <EmptyTitle>No Notifications Yet</EmptyTitle>
+            <EmptyDesc>
               Redeem a gift and your notifications will appear here!
-            </p>
-          </motion.div>
+            </EmptyDesc>
+          </EmptyState>
         ) : (
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="space-y-2"
-          >
-            {notifications.map((notif) => (
-              <motion.div
-                key={notif.id}
-                variants={item}
-                className={`bg-gradient-to-r ${notif.color} border ${notif.accent} rounded-xl p-3.5 flex items-start gap-3`}
-              >
-                <div className="text-2xl shrink-0 mt-0.5">{notif.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-white">{notif.title}</p>
-                    <p className="text-[10px] text-dark-400 shrink-0">{formatTime(notif.time)}</p>
-                  </div>
-                  <p className="text-xs text-dark-300 mt-0.5 leading-relaxed">{notif.message}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          <NotifList>
+            {notifications.map((notif, i) => {
+              const colors = notifColorMap[notif.type] || notifColorMap.redeemed;
+              return (
+                <NotifCard
+                  key={notif.id}
+                  ref={(el) => (notifRefs.current[i] = el)}
+                  bg={colors.bg}
+                  borderColor={colors.border}
+                >
+                  <NotifIcon>{notif.icon}</NotifIcon>
+                  <NotifBody>
+                    <NotifHeader>
+                      <NotifTitle>{notif.title}</NotifTitle>
+                      <NotifTime>{formatTime(notif.time)}</NotifTime>
+                    </NotifHeader>
+                    <NotifMessage>{notif.message}</NotifMessage>
+                  </NotifBody>
+                </NotifCard>
+              );
+            })}
+          </NotifList>
         )}
-      </div>
-    </motion.div>
+      </ContentArea>
+    </Wrapper>
   );
 }

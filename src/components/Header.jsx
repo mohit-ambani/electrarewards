@@ -1,70 +1,166 @@
-import { motion } from 'framer-motion';
+import React from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import { FiBell } from 'react-icons/fi';
+import { IoFlash } from 'react-icons/io5';
+import useAppStore from '../store/useAppStore';
 
-export default function Header({ userPoints, onProfileClick, onNotificationsClick, notificationCount }) {
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
+  50% { box-shadow: 0 0 18px rgba(251, 146, 60, 0.6); }
+`;
+
+const HeaderWrapper = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.12);
+`;
+
+const LogoSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const LogoIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #020617;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
+`;
+
+const AppName = styled.h1`
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+`;
+
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const BellButton = styled.button`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 250, 252, 0.08);
+  background: rgba(248, 250, 252, 0.05);
+  color: #f8fafc;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:active {
+    transform: scale(0.92);
+  }
+`;
+
+const NotifBadge = styled.span`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid #020617;
+`;
+
+const PointsBadge = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(251, 146, 60, 0.25);
+  background: rgba(251, 146, 60, 0.1);
+  color: #fb923c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: ${pulseGlow} 3s ease-in-out infinite;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const PointsIcon = styled.span`
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #fb923c;
+`;
+
+const Header = () => {
+  const history = useHistory();
+  const userPoints = useAppStore((s) => s.userPoints);
+  const redemptionHistory = useAppStore((s) => s.redemptionHistory);
+
+  const notificationCount = redemptionHistory.length * 4;
+
   return (
-    <motion.header
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 100 }}
-      className="sticky top-0 z-40 bg-dark-950/80 backdrop-blur-xl border-b border-white/5"
-    >
-      <div className="px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20"
-          >
-            <span className="text-lg">⚡</span>
-          </motion.div>
-          <div>
-            <h1 className="text-sm font-display font-bold text-white leading-none">ElectraRewards</h1>
-            <p className="text-[10px] text-dark-400 font-medium">Premium Catalogue</p>
-          </div>
-        </div>
+    <HeaderWrapper>
+      <LogoSection>
+        <LogoIcon>
+          <IoFlash />
+        </LogoIcon>
+        <AppName>ElectraRewards</AppName>
+      </LogoSection>
 
-        <div className="flex items-center gap-2">
-        {/* Bell Icon */}
-        <motion.button
-          onClick={onNotificationsClick}
-          whileTap={{ scale: 0.9 }}
-          className="relative w-9 h-9 rounded-xl bg-dark-800/80 border border-white/5 flex items-center justify-center"
-        >
-          <span className="text-base">🔔</span>
+      <RightSection>
+        <BellButton onClick={() => history.push('/notifications')}>
+          <FiBell />
           {notificationCount > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center"
-            >
-              <span className="text-[8px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
-            </motion.div>
+            <NotifBadge>
+              {notificationCount > 99 ? '99+' : notificationCount}
+            </NotifBadge>
           )}
-        </motion.button>
+        </BellButton>
 
-        {/* Points Badge */}
-        <motion.button
-          onClick={onProfileClick}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 bg-gradient-to-r from-brand-500/10 to-brand-500/5 border border-brand-500/20 rounded-2xl px-3 py-1.5"
-        >
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-sm"
-          >
-            ⚡
-          </motion.div>
-          <div className="text-right">
-            <p className="text-xs font-bold text-brand-400 leading-none">
-              {userPoints.toLocaleString()}
-            </p>
-            <p className="text-[9px] text-dark-400">points</p>
-          </div>
-        </motion.button>
-        </div>
-      </div>
-    </motion.header>
+        <PointsBadge onClick={() => history.push('/profile')}>
+          <PointsIcon>
+            <IoFlash />
+          </PointsIcon>
+          {userPoints.toLocaleString()}
+        </PointsBadge>
+      </RightSection>
+    </HeaderWrapper>
   );
-}
+};
+
+export default Header;

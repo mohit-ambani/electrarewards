@@ -1,334 +1,479 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
-import { trackingStages, generateOrderId, generateDocket, generateOTP } from '../data/trackingSimulation';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import anime from 'animejs';
+import useAppStore from '../store/useAppStore';
+import {
+  trackingStages,
+  generateOrderId,
+  generateDocket,
+  generateOTP,
+} from '../data/trackingSimulation';
 import OTPVerification from './OTPVerification';
 
-export default function TrackingScreen({ gift, onComplete }) {
+const pulse = keyframes`
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+`;
+
+const colorMap = {
+  'text-green-400': '#4ade80',
+  'text-blue-400': '#60a5fa',
+  'text-emerald-400': '#34d399',
+  'text-purple-400': '#c084fc',
+  'text-orange-400': '#fb923c',
+  'text-cyan-400': '#22d3ee',
+  'text-sky-400': '#38bdf8',
+  'text-amber-400': '#fbbf24',
+  'text-red-400': '#f87171',
+  'text-yellow-400': '#facc15',
+};
+
+const bgMap = {
+  'bg-green-500/10': 'rgba(34,197,94,0.1)',
+  'bg-blue-500/10': 'rgba(59,130,246,0.1)',
+  'bg-emerald-500/10': 'rgba(16,185,129,0.1)',
+  'bg-purple-500/10': 'rgba(168,85,247,0.1)',
+  'bg-orange-500/10': 'rgba(249,115,22,0.1)',
+  'bg-cyan-500/10': 'rgba(6,182,212,0.1)',
+  'bg-sky-500/10': 'rgba(14,165,233,0.1)',
+  'bg-amber-500/10': 'rgba(245,158,11,0.1)',
+  'bg-red-500/10': 'rgba(239,68,68,0.1)',
+  'bg-yellow-500/10': 'rgba(234,179,8,0.1)',
+};
+
+const Wrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #020617;
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-y: auto;
+`;
+
+const Header = styled.div`
+  padding: 20px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+`;
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const HeaderTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 800;
+  color: #f8fafc;
+`;
+
+const HeaderSub = styled.p`
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+`;
+
+const LiveBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.2);
+`;
+
+const LiveDot = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const LiveText = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: #4ade80;
+`;
+
+const ProgressTrack = styled.div`
+  margin-top: 12px;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 6px;
+  overflow: hidden;
+`;
+
+const ProgressFill = styled.div`
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  width: ${(p) => p.pct}%;
+`;
+
+const ProgressInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+`;
+
+const ProgressText = styled.span`
+  font-size: 10px;
+  color: ${(p) => p.color || '#64748b'};
+`;
+
+const GiftSummary = styled.div`
+  margin: 16px 20px 0;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+`;
+
+const GiftEmojiBox = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(249,115,22,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+`;
+
+const GiftInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const GiftName = styled.p`
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const GiftDelivery = styled.p`
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+`;
+
+const CountdownBar = styled.div`
+  margin: 12px 20px 0;
+  padding: 10px 16px;
+  background: rgba(249,115,22,0.08);
+  border: 1px solid rgba(249,115,22,0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+`;
+
+const CountdownLabel = styled.span`
+  font-size: 12px;
+  color: #94a3b8;
+`;
+
+const CountdownValue = styled.span`
+  font-size: 14px;
+  font-weight: 700;
+  color: #fb923c;
+  font-variant-numeric: tabular-nums;
+`;
+
+const TimelineWrap = styled.div`
+  padding: 20px;
+  flex: 1;
+`;
+
+const TimelineEntry = styled.div`
+  display: flex;
+  gap: 14px;
+  margin-bottom: 4px;
+  opacity: 0;
+  transform: translateX(-20px);
+`;
+
+const TimelineLeft = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  flex-shrink: 0;
+`;
+
+const StageDot = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: ${(p) => p.bg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  position: relative;
+  flex-shrink: 0;
+`;
+
+const PulseRing = styled.div`
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  border: 2px solid ${(p) => p.color};
+  animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const VertLine = styled.div`
+  width: 2px;
+  flex: 1;
+  min-height: 16px;
+  background: ${(p) => (p.active ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.06)')};
+  margin: 4px 0;
+`;
+
+const StageContent = styled.div`
+  flex: 1;
+  padding-bottom: 20px;
+  min-width: 0;
+`;
+
+const StageTitle = styled.p`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${(p) => p.color || '#f8fafc'};
+`;
+
+const StageSubtitle = styled.p`
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+`;
+
+const StageDetail = styled.div`
+  font-size: 11px;
+  color: #cbd5e1;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border-left: 2px solid ${(p) => p.borderColor || 'rgba(255,255,255,0.1)'};
+`;
+
+const StageTime = styled.p`
+  font-size: 10px;
+  color: #475569;
+  margin-top: 4px;
+`;
+
+const SkipBtn = styled.button`
+  margin: 0 20px 20px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(249,115,22,0.1);
+  border: 1px solid rgba(249,115,22,0.2);
+  color: #fb923c;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  flex-shrink: 0;
+  width: calc(100% - 40px);
+`;
+
+const DemoNote = styled.p`
+  text-align: center;
+  font-size: 10px;
+  color: #475569;
+  margin: -12px 0 20px;
+`;
+
+export default function TrackingScreen() {
+  const history = useHistory();
+  const { selectedGift } = useAppStore();
+  const gift = selectedGift || { name: 'Your Gift', image: '🎁', points: 0 };
+
+  const orderId = useMemo(() => generateOrderId(), []);
+  const docket = useMemo(() => generateDocket(), []);
+  const otp = useMemo(() => generateOTP(), []);
+
   const [currentStage, setCurrentStage] = useState(0);
-  const [stages, setStages] = useState([]);
+  const [countdown, setCountdown] = useState(60);
   const [showOTP, setShowOTP] = useState(false);
-  const [orderId] = useState(generateOrderId);
-  const [docket] = useState(generateDocket);
-  const [otp] = useState(generateOTP);
-  const [secondsToNext, setSecondsToNext] = useState(60);
-  const bottomRef = useRef(null);
 
-  // Process tracking stage details with real data
-  const processDetail = (detail) => {
-    return detail
-      .replace('{orderId}', orderId)
-      .replace('{docket}', docket);
-  };
+  const stageRefs = useRef([]);
 
-  // Advance stages every 60 seconds (1 minute)
+  // Auto-advance every 60s
   useEffect(() => {
-    if (currentStage >= trackingStages.length) return;
+    if (showOTP) return;
 
-    // Add initial stage immediately
-    if (stages.length === 0) {
-      setStages([{ ...trackingStages[0], timestamp: new Date() }]);
-      setCurrentStage(1);
-      return;
-    }
-
-    // Countdown timer
-    const countdownTimer = setInterval(() => {
-      setSecondsToNext(prev => {
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
         if (prev <= 1) {
+          setCurrentStage((s) => {
+            const next = s + 1;
+            if (next >= trackingStages.length) {
+              clearInterval(interval);
+              setShowOTP(true);
+              return s;
+            }
+            return next;
+          });
           return 60;
         }
         return prev - 1;
       });
     }, 1000);
 
-    // Stage advancement timer (every 60 seconds)
-    const stageTimer = setInterval(() => {
-      setCurrentStage(prev => {
-        const nextStage = prev;
-        if (nextStage < trackingStages.length) {
-          setStages(s => [...s, { ...trackingStages[nextStage], timestamp: new Date() }]);
+    return () => clearInterval(interval);
+  }, [showOTP]);
 
-          // If it's the OTP stage
-          if (nextStage === trackingStages.length - 1) {
-            setTimeout(() => setShowOTP(true), 1500);
-          }
-
-          return prev + 1;
-        }
-        return prev;
-      });
-      setSecondsToNext(60);
-    }, 60000); // 60 seconds = 1 minute
-
-    return () => {
-      clearInterval(countdownTimer);
-      clearInterval(stageTimer);
-    };
-  }, [currentStage, stages.length]);
-
-  // Auto-scroll to bottom
+  // Animate stage entries
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    stageRefs.current.forEach((el, i) => {
+      if (!el || i > currentStage) return;
+      anime({
+        targets: el,
+        translateX: [-20, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: i === currentStage ? 0 : i * 80,
+        easing: 'easeOutExpo',
+      });
+    });
+  }, [currentStage]);
+
+  const handleSkip = () => {
+    if (currentStage < trackingStages.length - 1) {
+      setCurrentStage((s) => s + 1);
+      setCountdown(60);
+    } else {
+      setShowOTP(true);
     }
-  }, [stages]);
+  };
 
   const handleOTPSuccess = () => {
-    setShowOTP(false);
-    onComplete();
+    history.push('/delivered');
   };
 
-  const progressPercent = (stages.length / trackingStages.length) * 100;
+  const progressPct = ((currentStage + 1) / trackingStages.length) * 100;
 
-  // For demo: advance to next stage immediately
-  const skipToNext = () => {
-    if (currentStage < trackingStages.length) {
-      setStages(s => [...s, { ...trackingStages[currentStage], timestamp: new Date() }]);
-      if (currentStage === trackingStages.length - 1) {
-        setTimeout(() => setShowOTP(true), 1500);
-      }
-      setCurrentStage(prev => prev + 1);
-      setSecondsToNext(60);
-    }
+  const getTimestamp = (stageIndex) => {
+    const now = new Date();
+    const offset = (currentStage - stageIndex) * 60 * 1000;
+    const time = new Date(now.getTime() - offset);
+    return time.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
+
+  const fillDetail = (detail) =>
+    detail.replace('{orderId}', orderId).replace('{docket}', docket);
+
+  if (showOTP) {
+    return (
+      <OTPVerification otp={otp} gift={gift} onSuccess={handleOTPSuccess} />
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 bg-dark-950 flex flex-col max-w-[430px] mx-auto"
-    >
-      {/* Header */}
-      <motion.div
-        initial={{ y: -60 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-10 bg-dark-950/90 backdrop-blur-xl border-b border-white/5 px-4 py-3"
-      >
-        <div className="flex items-center justify-between">
+    <Wrapper>
+      <Header>
+        <HeaderRow>
           <div>
-            <h2 className="text-lg font-display font-bold text-white">Live Tracking</h2>
-            <p className="text-[11px] text-dark-400">Order #{orderId}</p>
+            <HeaderTitle>Live Tracking</HeaderTitle>
+            <HeaderSub>Order #ELR-2026-{orderId}</HeaderSub>
           </div>
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20"
-          >
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-semibold text-green-400">LIVE</span>
-          </motion.div>
-        </div>
+          <LiveBadge>
+            <LiveDot />
+            <LiveText>LIVE</LiveText>
+          </LiveBadge>
+        </HeaderRow>
 
-        {/* Progress bar */}
-        <div className="mt-3 h-1.5 bg-dark-800 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full relative"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-              animate={{ x: [-100, 200] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          </motion.div>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-dark-500">{stages.length}/{trackingStages.length} stages</span>
-          {currentStage < trackingStages.length && (
-            <span className="text-[10px] text-brand-400">Next update in {secondsToNext}s</span>
-          )}
-        </div>
-      </motion.div>
+        <ProgressTrack>
+          <ProgressFill pct={progressPct} />
+        </ProgressTrack>
+        <ProgressInfo>
+          <ProgressText>
+            {currentStage + 1}/{trackingStages.length} stages
+          </ProgressText>
+          <ProgressText color="#fb923c">
+            Next update in {countdown}s
+          </ProgressText>
+        </ProgressInfo>
+      </Header>
 
-      {/* Gift Summary Card */}
-      <div className="px-4 pt-4">
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-glass rounded-2xl p-3 flex items-center gap-3"
-        >
-          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${gift.color} flex items-center justify-center`}>
-            <span className="text-2xl">{gift.image}</span>
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-white">{gift.name}</h3>
-            <p className="text-xs text-dark-400">Estimated delivery: 2-5 business days</p>
-          </div>
-        </motion.div>
-      </div>
+      <GiftSummary>
+        <GiftEmojiBox>{gift.image}</GiftEmojiBox>
+        <GiftInfo>
+          <GiftName>{gift.name}</GiftName>
+          <GiftDelivery>Estimated delivery: 2-5 business days</GiftDelivery>
+        </GiftInfo>
+      </GiftSummary>
 
-      {/* Timeline */}
-      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-32">
-        <AnimatePresence>
-          {stages.map((stage, index) => (
-            <motion.div
+      <CountdownBar>
+        <CountdownLabel>Next update in</CountdownLabel>
+        <CountdownValue>
+          {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+        </CountdownValue>
+      </CountdownBar>
+
+      <TimelineWrap>
+        {trackingStages.map((stage, i) => {
+          if (i > currentStage) return null;
+          const isActive = i === currentStage;
+          const stageColor = colorMap[stage.color] || '#fb923c';
+          const stageBg = bgMap[stage.bgColor] || 'rgba(249,115,22,0.1)';
+
+          return (
+            <TimelineEntry
               key={stage.id}
-              initial={{ opacity: 0, x: -30, y: 20 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-              className="flex gap-4 mb-1"
+              ref={(el) => (stageRefs.current[i] = el)}
             >
-              {/* Timeline line */}
-              <div className="flex flex-col items-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
-                  className={`w-10 h-10 rounded-full ${stage.bgColor} ${stage.borderColor} border flex items-center justify-center text-lg relative`}
-                >
-                  {index === stages.length - 1 && (
-                    <motion.div
-                      className={`absolute inset-0 rounded-full ${stage.borderColor} border`}
-                      animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  )}
+              <TimelineLeft>
+                <StageDot bg={stageBg}>
+                  {isActive && <PulseRing color={stageColor} />}
                   <span>{stage.icon}</span>
-                </motion.div>
-                {index < stages.length - 1 && (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: 60 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="w-0.5 bg-gradient-to-b from-dark-600 to-dark-800"
-                  />
-                )}
-                {index === stages.length - 1 && currentStage < trackingStages.length && (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: 40 }}
-                    className="w-0.5 bg-dark-800"
-                  >
-                    <motion.div
-                      className="w-full bg-brand-500/50"
-                      animate={{ height: ['0%', '100%', '0%'] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  </motion.div>
-                )}
-              </div>
+                </StageDot>
+                {i < currentStage && <VertLine active />}
+              </TimelineLeft>
 
-              {/* Content */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className={`flex-1 pb-6 ${index === stages.length - 1 ? '' : ''}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className={`text-sm font-bold ${stage.color}`}>
-                      {stage.title}
-                    </h4>
-                    <p className="text-xs text-dark-400 mt-0.5">{stage.subtitle}</p>
-                  </div>
-                  <span className="text-[10px] text-dark-500 whitespace-nowrap">
-                    {stage.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+              <StageContent>
+                <StageTitle color={stageColor}>{stage.title}</StageTitle>
+                <StageSubtitle>{stage.subtitle}</StageSubtitle>
+                <StageDetail borderColor={stageColor}>
+                  {fillDetail(stage.detail)}
+                </StageDetail>
+                <StageTime>{getTimestamp(i)}</StageTime>
+              </StageContent>
+            </TimelineEntry>
+          );
+        })}
+      </TimelineWrap>
 
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  transition={{ delay: 0.5 }}
-                  className={`mt-2 p-2.5 ${stage.bgColor} rounded-xl border ${stage.borderColor}`}
-                >
-                  <p className="text-[11px] text-dark-300">
-                    {processDetail(stage.detail)}
-                  </p>
-                </motion.div>
-
-                {/* Notification badge */}
-                {index === stages.length - 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="mt-2 flex items-center gap-1.5"
-                  >
-                    <motion.div
-                      animate={{ scale: [1, 1.3, 1] }}
-                      transition={{ duration: 1, repeat: 3 }}
-                      className="text-xs"
-                    >
-                      🔔
-                    </motion.div>
-                    <span className="text-[10px] text-dark-400 italic">
-                      Real-time notification sent
-                    </span>
-                  </motion.div>
-                )}
-              </motion.div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {/* Waiting indicator */}
-        {currentStage < trackingStages.length && stages.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-3 pl-14 mt-2"
-          >
-            <motion.div
-              animate={{ opacity: [0.3, 1, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="flex gap-1"
-            >
-              {[0, 1, 2].map(i => (
-                <motion.div
-                  key={i}
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 0.6, delay: i * 0.2, repeat: Infinity }}
-                  className="w-1.5 h-1.5 rounded-full bg-brand-400"
-                />
-              ))}
-            </motion.div>
-            <span className="text-xs text-dark-500">
-              Next: {trackingStages[currentStage]?.title}
-            </span>
-          </motion.div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Skip button for demo */}
-      {currentStage < trackingStages.length && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-dark-950 via-dark-950/95 to-transparent max-w-[430px] mx-auto">
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={skipToNext}
-            className="w-full py-3.5 rounded-2xl bg-glass border border-brand-500/20 text-brand-400 font-semibold text-sm flex items-center justify-center gap-2"
-          >
-            <span>Skip to Next Update</span>
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              →
-            </motion.span>
-          </motion.button>
-          <p className="text-center text-[10px] text-dark-500 mt-2">
-            Demo mode: Updates every 1 minute (or tap to skip)
-          </p>
-        </div>
-      )}
-
-      {/* OTP Verification */}
-      <AnimatePresence>
-        {showOTP && (
-          <OTPVerification
-            otp={otp}
-            gift={gift}
-            onSuccess={handleOTPSuccess}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
+      <SkipBtn onClick={handleSkip}>
+        {currentStage < trackingStages.length - 1
+          ? 'Skip to Next Update (Demo)'
+          : 'Complete Delivery (Demo)'}
+      </SkipBtn>
+      <DemoNote>Demo mode: Updates every 1 minute (or tap to skip)</DemoNote>
+    </Wrapper>
   );
 }

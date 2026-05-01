@@ -1,8 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'bootstrap/dist/css/bootstrap.min.css';
 
-* {
+:root {
+  --dark-950: #020617;
+  --dark-900: #0f172a;
+  --dark-800: #1e293b;
+  --dark-700: #334155;
+  --dark-600: #475569;
+  --dark-500: #64748b;
+  --dark-400: #94a3b8;
+  --dark-300: #cbd5e1;
+  --brand-400: #fb923c;
+  --brand-500: #f97316;
+  --brand-600: #ea580c;
+  --electric-400: #60a5fa;
+  --electric-500: #3b82f6;
+  --electric-600: #2563eb;
+}
+
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -11,17 +28,20 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: #020617;
-  color: #f8fafc;
-  overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  background: var(--dark-950) !important;
+  color: #f8fafc !important;
+  overflow-x: hidden !important;
   max-width: 430px;
-  margin: 0 auto;
+  margin: 0 auto !important;
   min-height: 100vh;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 body::before {
@@ -40,11 +60,28 @@ body::before {
   z-index: 0;
 }
 
+body.admin-mode {
+  max-width: 100% !important;
+  background: #f0f2f5 !important;
+  color: #333 !important;
+}
+
+body.admin-mode::before {
+  display: none;
+}
+
 #root {
   position: relative;
   z-index: 1;
   max-width: 430px;
   margin: 0 auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+#root.admin-root {
+  max-width: 100%;
+  overflow-x: visible;
 }
 
 ::-webkit-scrollbar {
@@ -52,113 +89,140 @@ body::before {
   background: transparent;
 }
 
-@layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-300 to-electric-400;
-  }
-
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500;
-  }
-
-  .bg-glass {
-    @apply bg-dark-800/60 backdrop-blur-xl border border-white/5;
-  }
-
-  .bg-glass-light {
-    @apply bg-dark-700/40 backdrop-blur-lg border border-white/10;
-  }
-
-  .shimmer-bg {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
-  }
-
-  .glow-orange {
-    box-shadow: 0 0 15px rgba(251, 146, 60, 0.3), 0 0 30px rgba(251, 146, 60, 0.1);
-  }
-
-  .glow-blue {
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.1);
-  }
-
-  .glow-green {
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.3), 0 0 30px rgba(34, 197, 94, 0.1);
-  }
+/* ——— Bootstrap overrides for mobile PWA ——— */
+h1, h2, h3, h4, h5, h6, p {
+  margin-bottom: 0;
 }
 
-/* Custom scrollbar for gift grid */
-.gift-grid::-webkit-scrollbar {
-  display: none;
+button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
 }
 
-/* Particle animation */
-@keyframes particle {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
-.particle {
-  animation: particle var(--duration, 3s) ease-out forwards;
-  animation-delay: var(--delay, 0s);
+img {
+  max-width: 100%;
 }
 
-/* Electric spark effect */
-@keyframes spark {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
+input, textarea, select {
+  font-family: inherit;
 }
 
-/* Ripple effect */
-@keyframes ripple {
-  0% { transform: scale(0); opacity: 0.5; }
-  100% { transform: scale(4); opacity: 0; }
+/* ——— Utility classes ——— */
+.bg-glass {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.ripple {
-  animation: ripple 0.6s ease-out;
+.text-gradient {
+  background: linear-gradient(to right, var(--brand-400), var(--brand-500), var(--electric-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Gradient border animation */
-@keyframes gradient-border {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+.text-gradient-gold {
+  background: linear-gradient(to right, #fde047, #f59e0b, #eab308);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.gradient-border {
-  background: linear-gradient(135deg, #fb923c, #3b82f6, #fb923c, #3b82f6);
-  background-size: 300% 300%;
-  animation: gradient-border 3s ease infinite;
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }
 
-/* Breathing glow */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 @keyframes breathe {
   0%, 100% { box-shadow: 0 0 10px rgba(251, 146, 60, 0.2); }
   50% { box-shadow: 0 0 25px rgba(251, 146, 60, 0.5), 0 0 50px rgba(251, 146, 60, 0.2); }
 }
 
-.breathe {
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scale-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-breathe {
   animation: breathe 2s ease-in-out infinite;
 }
 
-/* Progress bar glow */
-@keyframes progress-glow {
-  0% { box-shadow: 0 0 5px rgba(251, 146, 60, 0.5); }
-  50% { box-shadow: 0 0 20px rgba(251, 146, 60, 0.8), 0 0 40px rgba(251, 146, 60, 0.3); }
-  100% { box-shadow: 0 0 5px rgba(251, 146, 60, 0.5); }
-}
-
-/* OTP input styling */
 .otp-input {
-  caret-color: #fb923c;
+  caret-color: var(--brand-400);
 }
 
 .otp-input:focus {
   box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.5), 0 0 20px rgba(251, 146, 60, 0.2);
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

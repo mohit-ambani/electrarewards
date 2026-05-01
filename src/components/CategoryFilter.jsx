@@ -1,36 +1,85 @@
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import styled from 'styled-components';
+import useAppStore from '../store/useAppStore';
 import { giftCategories } from '../data/gifts';
-import { useRef } from 'react';
 
-export default function CategoryFilter({ selected, onSelect }) {
+const Wrapper = styled.div`
+  padding: 16px 0 8px;
+`;
+
+const ScrollContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 16px 8px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const Pill = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: ${(props) =>
+    props.$active ? 'none' : '1px solid rgba(248, 250, 252, 0.06)'};
+  background: ${(props) =>
+    props.$active
+      ? 'linear-gradient(135deg, #fb923c, #ea580c)'
+      : 'rgba(248, 250, 252, 0.05)'};
+  backdrop-filter: ${(props) => (props.$active ? 'none' : 'blur(8px)')};
+  -webkit-backdrop-filter: ${(props) =>
+    props.$active ? 'none' : 'blur(8px)'};
+  color: ${(props) => (props.$active ? '#ffffff' : '#94a3b8')};
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: ${(props) =>
+    props.$active ? '0 4px 14px rgba(251, 146, 60, 0.3)' : 'none'};
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  &:hover {
+    border-color: ${(props) =>
+      props.$active ? 'transparent' : 'rgba(251, 146, 60, 0.25)'};
+  }
+`;
+
+const PillIcon = styled.span`
+  font-size: 14px;
+  line-height: 1;
+`;
+
+const CategoryFilter = () => {
   const scrollRef = useRef(null);
+  const category = useAppStore((s) => s.category);
+  const setCategory = useAppStore((s) => s.setCategory);
 
   return (
-    <div className="px-4 pt-5 pb-2">
-      <div
-        ref={scrollRef}
-        className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {giftCategories.map((cat, index) => (
-          <motion.button
+    <Wrapper>
+      <ScrollContainer ref={scrollRef}>
+        {giftCategories.map((cat) => (
+          <Pill
             key={cat.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            whileTap={{ scale: 0.92 }}
-            onClick={() => onSelect(cat.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
-              selected === cat.id
-                ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/30'
-                : 'bg-dark-800/80 text-dark-300 border border-white/5 hover:border-brand-500/30'
-            }`}
+            $active={category === cat.id}
+            onClick={() => setCategory(cat.id)}
           >
-            <span className="text-sm">{cat.icon}</span>
+            <PillIcon>{cat.icon}</PillIcon>
             {cat.name}
-          </motion.button>
+          </Pill>
         ))}
-      </div>
-    </div>
+      </ScrollContainer>
+    </Wrapper>
   );
-}
+};
+
+export default CategoryFilter;

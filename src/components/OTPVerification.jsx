@@ -1,280 +1,448 @@
-import { motion } from 'framer-motion';
-import { useState, useRef, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import React, { useState, useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
+import OtpInput from 'react-otp-input';
+import Confetti from 'react-dom-confetti';
+import anime from 'animejs';
+
+const wobble = keyframes`
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-10deg) scale(1.1); }
+  75% { transform: rotate(10deg) scale(1.1); }
+`;
+
+const shake = keyframes`
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+`;
+
+const pulseScale = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 30px rgba(34,197,94,0.3); }
+  50% { box-shadow: 0 0 80px rgba(34,197,94,0.5); }
+`;
+
+const floatUp = keyframes`
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-200px); opacity: 0; }
+`;
+
+const Wrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(2,6,23,0.95);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  max-width: 430px;
+  margin: 0 auto;
+`;
+
+const LockEmoji = styled.div`
+  font-size: 64px;
+  margin-bottom: 24px;
+  animation: ${wobble} 2s ease-in-out infinite;
+  opacity: 0;
+`;
+
+const Title = styled.h2`
+  font-size: 24px;
+  font-weight: 800;
+  color: #f8fafc;
+  text-align: center;
+  opacity: 0;
+`;
+
+const Subtitle = styled.p`
+  font-size: 14px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 8px;
+  opacity: 0;
+`;
+
+const DemoBox = styled.div`
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(249,115,22,0.1);
+  border: 1px solid rgba(249,115,22,0.2);
+  border-radius: 12px;
+  text-align: center;
+  opacity: 0;
+`;
+
+const DemoLabel = styled.p`
+  font-size: 11px;
+  color: #94a3b8;
+`;
+
+const DemoOTP = styled.p`
+  font-size: 28px;
+  font-weight: 800;
+  color: #fb923c;
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+  animation: ${pulseScale} 2s ease-in-out infinite;
+`;
+
+const HideBtn = styled.button`
+  font-size: 10px;
+  color: #475569;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 4px;
+`;
+
+const OtpWrap = styled.div`
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  animation: ${(p) => (p.hasError ? shake : 'none')} 0.5s ease;
+`;
+
+const ErrorMsg = styled.p`
+  color: #f87171;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+  text-align: center;
+  opacity: 0;
+`;
+
+const HelpText = styled.p`
+  font-size: 12px;
+  color: #475569;
+  margin-top: 24px;
+  text-align: center;
+  opacity: 0;
+`;
+
+const SuccessWrap = styled.div`
+  text-align: center;
+  position: relative;
+  z-index: 10;
+`;
+
+const SuccessCircle = styled.div`
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4ade80, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  animation: ${pulseGlow} 2s ease-in-out infinite;
+  opacity: 0;
+  transform: scale(0) rotate(-180deg);
+`;
+
+const SuccessEmoji = styled.span`
+  font-size: 64px;
+`;
+
+const SuccessTitle = styled.h2`
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-top: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+`;
+
+const SuccessDesc = styled.p`
+  font-size: 14px;
+  color: #94a3b8;
+  margin-top: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+`;
+
+const SuccessGiftCard = styled.div`
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  opacity: 0;
+`;
+
+const SuccessGiftEmoji = styled.span`
+  font-size: 48px;
+  display: block;
+`;
+
+const SuccessGiftName = styled.p`
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 8px;
+`;
+
+const SuccessGiftNote = styled.p`
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+`;
+
+const FloatingDot = styled.div`
+  position: absolute;
+  width: ${(p) => 4 + Math.random() * 8}px;
+  height: ${(p) => 4 + Math.random() * 8}px;
+  border-radius: 50%;
+  background: ${(p) => p.color};
+  left: ${(p) => p.x}%;
+  top: ${(p) => p.y}%;
+  animation: ${floatUp} ${(p) => 2 + p.dur}s ease-in ${(p) => p.delay}s infinite;
+`;
+
+const ConfettiWrap = styled.div`
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  z-index: 100;
+`;
+
+const confettiConfig = {
+  angle: 90,
+  spread: 360,
+  startVelocity: 40,
+  elementCount: 70,
+  dragFriction: 0.12,
+  duration: 3000,
+  stagger: 3,
+  width: '10px',
+  height: '10px',
+  colors: ['#22c55e', '#10b981', '#34d399', '#4ade80', '#fb923c'],
+};
 
 export default function OTPVerification({ otp, gift, onSuccess }) {
-  const [digits, setDigits] = useState(['', '', '', '']);
+  const [otpValue, setOtpValue] = useState('');
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showOTP, setShowOTP] = useState(true);
-  const inputRefs = useRef([]);
+  const [showOTPDemo, setShowOTPDemo] = useState(true);
+  const [confettiActive, setConfettiActive] = useState(false);
 
-  const fireSuccessConfetti = useCallback(() => {
-    const duration = 3000;
-    const end = Date.now() + duration;
+  const lockRef = useRef(null);
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const demoRef = useRef(null);
+  const otpWrapRef = useRef(null);
+  const helpRef = useRef(null);
+  const errorRef = useRef(null);
+  const successCircleRef = useRef(null);
+  const successTitleRef = useRef(null);
+  const successDescRef = useRef(null);
+  const successCardRef = useRef(null);
 
-    const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#22c55e', '#10b981', '#34d399'],
-        zIndex: 200,
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#22c55e', '#10b981', '#34d399'],
-        zIndex: 200,
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    };
-    frame();
-  }, []);
-
+  // Entrance animations
   useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
+    const els = [lockRef, titleRef, subtitleRef, demoRef, otpWrapRef, helpRef];
+    els.forEach((ref, i) => {
+      if (!ref.current) return;
+      anime({
+        targets: ref.current,
+        translateY: [30, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 100 + i * 100,
+        easing: 'easeOutExpo',
+      });
+    });
   }, []);
 
-  const handleInput = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+  // Success animations
+  useEffect(() => {
+    if (!success) return;
 
-    const newDigits = [...digits];
-    newDigits[index] = value.slice(-1);
-    setDigits(newDigits);
+    if (successCircleRef.current) {
+      anime({
+        targets: successCircleRef.current,
+        scale: [0, 1],
+        rotate: [-180, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'spring(1, 80, 10, 0)',
+      });
+    }
+
+    if (successTitleRef.current) {
+      anime({
+        targets: successTitleRef.current,
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 400,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    if (successDescRef.current) {
+      anime({
+        targets: successDescRef.current,
+        translateY: [10, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 600,
+        easing: 'easeOutExpo',
+      });
+    }
+
+    if (successCardRef.current) {
+      anime({
+        targets: successCardRef.current,
+        translateY: [20, 0],
+        opacity: [0, 1],
+        duration: 500,
+        delay: 800,
+        easing: 'easeOutExpo',
+      });
+    }
+  }, [success]);
+
+  const handleOtpChange = (val) => {
+    setOtpValue(val);
     setError(false);
 
-    if (value && index < 3) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Check if all digits are entered
-    if (newDigits.every(d => d !== '') && index === 3) {
-      const entered = newDigits.join('');
-      if (entered === otp) {
+    if (val.length === 4) {
+      if (val === otp) {
         setSuccess(true);
-        fireSuccessConfetti();
-        setTimeout(onSuccess, 3000);
+        setConfettiActive(true);
+        setTimeout(() => setConfettiActive(false), 100);
+        setTimeout(() => onSuccess(), 3000);
       } else {
         setError(true);
-        setDigits(['', '', '', '']);
-        setTimeout(() => inputRefs.current[0]?.focus(), 300);
+        if (errorRef.current) {
+          anime({
+            targets: errorRef.current,
+            opacity: [0, 1],
+            translateY: [-10, 0],
+            duration: 300,
+            easing: 'easeOutExpo',
+          });
+        }
+        setTimeout(() => {
+          setOtpValue('');
+        }, 800);
       }
     }
   };
 
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
+  if (success) {
+    return (
+      <Wrapper>
+        {[...Array(30)].map((_, i) => (
+          <FloatingDot
+            key={i}
+            color={
+              ['#22c55e', '#10b981', '#34d399', '#fb923c', '#3b82f6'][i % 5]
+            }
+            x={Math.random() * 100}
+            y={60 + Math.random() * 40}
+            dur={Math.random() * 2}
+            delay={Math.random() * 2}
+          />
+        ))}
+
+        <ConfettiWrap>
+          <Confetti active={confettiActive} config={confettiConfig} />
+        </ConfettiWrap>
+
+        <SuccessWrap>
+          <SuccessCircle ref={successCircleRef}>
+            <SuccessEmoji>🎉</SuccessEmoji>
+          </SuccessCircle>
+
+          <SuccessTitle ref={successTitleRef}>Gift Delivered!</SuccessTitle>
+
+          <SuccessDesc ref={successDescRef}>
+            Your {gift.name} has been delivered successfully!
+          </SuccessDesc>
+
+          <SuccessGiftCard ref={successCardRef}>
+            <SuccessGiftEmoji>{gift.image}</SuccessGiftEmoji>
+            <SuccessGiftName>Enjoy your reward!</SuccessGiftName>
+            <SuccessGiftNote>
+              Thank you for being a valued electrician partner
+            </SuccessGiftNote>
+          </SuccessGiftCard>
+        </SuccessWrap>
+      </Wrapper>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[70] bg-dark-950/95 backdrop-blur-xl flex flex-col items-center justify-center px-6 max-w-[430px] mx-auto"
-    >
-      {!success ? (
-        <motion.div
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="w-full text-center"
-        >
-          {/* Lock icon */}
-          <motion.div
-            animate={{
-              rotate: [0, -10, 10, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-6xl mb-6"
-          >
-            🔐
-          </motion.div>
+    <Wrapper>
+      <ConfettiWrap>
+        <Confetti active={confettiActive} config={confettiConfig} />
+      </ConfettiWrap>
 
-          <h2 className="text-2xl font-display font-extrabold text-white">
-            Delivery Confirmation
-          </h2>
-          <p className="text-sm text-dark-300 mt-2">
-            Enter the OTP to confirm gift delivery
-          </p>
+      <LockEmoji ref={lockRef}>🔐</LockEmoji>
 
-          {/* OTP Display (for demo) */}
-          {showOTP && (
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mt-4 p-3 bg-brand-500/10 border border-brand-500/20 rounded-xl"
-            >
-              <p className="text-xs text-dark-400">Your OTP (Demo)</p>
-              <motion.p
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-3xl font-display font-extrabold text-brand-400 tracking-[0.3em] mt-1"
-              >
-                {otp}
-              </motion.p>
-              <button
-                onClick={() => setShowOTP(false)}
-                className="text-[10px] text-dark-500 mt-1 underline"
-              >
-                Hide OTP
-              </button>
-            </motion.div>
-          )}
+      <Title ref={titleRef}>Delivery Confirmation</Title>
+      <Subtitle ref={subtitleRef}>
+        Enter the OTP to confirm gift delivery
+      </Subtitle>
 
-          {/* OTP Input */}
-          <div className="flex gap-3 justify-center mt-8">
-            {digits.map((digit, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="relative"
-              >
-                <input
-                  ref={el => inputRefs.current[i] = el}
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleInput(i, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  className={`otp-input w-16 h-20 text-center text-3xl font-display font-bold bg-dark-800/80 rounded-2xl border-2 outline-none transition-all duration-300 ${
-                    error
-                      ? 'border-red-500 text-red-400'
-                      : digit
-                      ? 'border-brand-500 text-brand-400'
-                      : 'border-dark-600 text-white'
-                  }`}
-                />
-                {!digit && (
-                  <motion.div
-                    animate={{ opacity: [0.3, 0.7, 0.3] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  >
-                    <div className="w-3 h-0.5 rounded-full bg-dark-500" />
-                  </motion.div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-400 text-sm mt-4 font-medium"
-            >
-              Invalid OTP. Please try again.
-            </motion.p>
-          )}
-
-          {/* Info text */}
-          <p className="text-dark-500 text-xs mt-6">
-            Share this OTP with the delivery agent
-          </p>
-        </motion.div>
-      ) : (
-        /* Success State */
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
-          className="text-center"
-        >
-          {/* Success animation background */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(30)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full"
-                style={{
-                  width: 4 + Math.random() * 8,
-                  height: 4 + Math.random() * 8,
-                  background: ['#22c55e', '#10b981', '#34d399', '#fb923c', '#3b82f6'][i % 5],
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  y: [0, -200],
-                  opacity: [1, 0],
-                  scale: [1, 0],
-                }}
-                transition={{
-                  duration: 2 + Math.random(),
-                  delay: Math.random() * 2,
-                  repeat: Infinity,
-                }}
-              />
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            className="relative z-10"
-          >
-            <motion.div
-              animate={{
-                boxShadow: [
-                  '0 0 30px rgba(34, 197, 94, 0.3)',
-                  '0 0 80px rgba(34, 197, 94, 0.5)',
-                  '0 0 30px rgba(34, 197, 94, 0.3)',
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-32 h-32 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto"
-            >
-              <span className="text-7xl">🎉</span>
-            </motion.div>
-          </motion.div>
-
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-3xl font-display font-extrabold text-gradient-gold mt-6 relative z-10"
-          >
-            Gift Delivered!
-          </motion.h2>
-
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-dark-300 mt-2 text-sm relative z-10"
-          >
-            Your {gift.name} has been delivered successfully!
-          </motion.p>
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="relative z-10 mt-6 p-4 bg-glass rounded-2xl"
-          >
-            <span className="text-5xl">{gift.image}</span>
-            <p className="text-sm font-bold text-white mt-2">Enjoy your reward!</p>
-            <p className="text-xs text-dark-400 mt-1">Thank you for being a valued electrician partner</p>
-          </motion.div>
-        </motion.div>
+      {showOTPDemo && (
+        <DemoBox ref={demoRef}>
+          <DemoLabel>Your OTP (Demo)</DemoLabel>
+          <DemoOTP>{otp}</DemoOTP>
+          <HideBtn onClick={() => setShowOTPDemo(false)}>Hide OTP</HideBtn>
+        </DemoBox>
       )}
-    </motion.div>
+
+      <OtpWrap ref={otpWrapRef} hasError={error}>
+        <OtpInput
+          value={otpValue}
+          onChange={handleOtpChange}
+          numInputs={4}
+          isInputNum
+          shouldAutoFocus
+          separator={<span style={{ width: 12 }} />}
+          inputStyle={{
+            width: 64,
+            height: 80,
+            fontSize: 28,
+            fontWeight: 700,
+            borderRadius: 16,
+            border: `2px solid ${error ? '#ef4444' : otpValue.length > 0 ? '#f97316' : '#334155'}`,
+            background: 'rgba(30,41,59,0.8)',
+            color: error ? '#f87171' : '#fb923c',
+            outline: 'none',
+            caretColor: '#fb923c',
+            transition: 'border-color 0.3s',
+          }}
+          focusStyle={{
+            border: '2px solid #f97316',
+            boxShadow: '0 0 0 2px rgba(249,115,22,0.2)',
+          }}
+        />
+      </OtpWrap>
+
+      {error && (
+        <ErrorMsg ref={errorRef}>Invalid OTP. Please try again.</ErrorMsg>
+      )}
+
+      <HelpText ref={helpRef}>
+        Share this OTP with the delivery agent
+      </HelpText>
+    </Wrapper>
   );
 }

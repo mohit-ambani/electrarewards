@@ -1,134 +1,270 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import anime from 'animejs';
 
-export default function SplashScreen({ onComplete }) {
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 20px rgba(251,146,60,0.3); }
+  50% { box-shadow: 0 0 60px rgba(251,146,60,0.6); }
+`;
+
+const gradientShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const Wrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #020617;
+  overflow: hidden;
+`;
+
+const BgGlow = styled.div`
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,146,60,0.15) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ${gradientShift} 4s ease infinite;
+`;
+
+const ArcLine = styled.div`
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  left: ${(p) => 15 + p.idx * 15}%;
+  background: linear-gradient(to bottom, transparent, rgba(251,146,60,0.25), transparent);
+  opacity: 0;
+`;
+
+const BoltBox = styled.div`
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  position: relative;
+  opacity: 0;
+  transform: scale(0) rotate(-180deg);
+  animation: ${pulseGlow} 2s ease-in-out infinite;
+`;
+
+const Particle = styled.div`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fb923c;
+  left: 50%;
+  top: 50%;
+  margin-left: -4px;
+  margin-top: -4px;
+  opacity: 0;
+`;
+
+const BrandName = styled.h1`
+  margin-top: 32px;
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fb923c, #f97316, #fb923c);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: ${gradientShift} 3s ease infinite;
+`;
+
+const Tagline = styled.p`
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(10px);
+`;
+
+const LoadingBarTrack = styled.div`
+  margin-top: 32px;
+  width: 192px;
+  height: 4px;
+  background: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+`;
+
+const LoadingBarFill = styled.div`
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  border-radius: 4px;
+`;
+
+export default function SplashScreen() {
+  const history = useHistory();
   const [phase, setPhase] = useState(0);
+  const boltRef = useRef(null);
+  const particlesRef = useRef([]);
+  const brandRef = useRef(null);
+  const taglineRef = useRef(null);
+  const loadingTrackRef = useRef(null);
+  const loadingFillRef = useRef(null);
+  const arcRefs = useRef([]);
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 500),
-      setTimeout(() => setPhase(2), 1200),
-      setTimeout(() => setPhase(3), 2000),
-      setTimeout(() => onComplete(), 3200),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+    // Arc animations
+    arcRefs.current.forEach((el, i) => {
+      if (!el) return;
+      anime({
+        targets: el,
+        opacity: [0, 0.3, 0],
+        scaleY: [0, 1, 0],
+        duration: 1500,
+        delay: 200 * i,
+        loop: true,
+        easing: 'easeInOutSine',
+      });
+    });
+
+    // Phase 0: Bolt appears
+    const t0 = setTimeout(() => {
+      setPhase(0);
+      if (boltRef.current) {
+        anime({
+          targets: boltRef.current,
+          scale: [0, 1],
+          rotate: [-180, 0],
+          opacity: [0, 1],
+          duration: 800,
+          easing: 'spring(1, 80, 10, 0)',
+        });
+      }
+    }, 100);
+
+    // Phase 1: Particles + Brand name
+    const t1 = setTimeout(() => {
+      setPhase(1);
+      particlesRef.current.forEach((el, i) => {
+        if (!el) return;
+        const angle = (i * Math.PI) / 4;
+        anime({
+          targets: el,
+          opacity: [0, 1, 0],
+          scale: [0, 1, 0],
+          translateX: [0, Math.cos(angle) * 60],
+          translateY: [0, Math.sin(angle) * 60],
+          duration: 1000,
+          delay: i * 100,
+          easing: 'easeOutExpo',
+        });
+      });
+      if (brandRef.current) {
+        anime({
+          targets: brandRef.current,
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 600,
+          easing: 'easeOutExpo',
+        });
+      }
+    }, 500);
+
+    // Phase 2: Tagline + Loading bar
+    const t2 = setTimeout(() => {
+      setPhase(2);
+      if (taglineRef.current) {
+        anime({
+          targets: taglineRef.current,
+          opacity: [0, 1],
+          translateY: [10, 0],
+          duration: 500,
+          easing: 'easeOutExpo',
+        });
+      }
+      if (loadingTrackRef.current) {
+        anime({
+          targets: loadingTrackRef.current,
+          opacity: [0, 1],
+          duration: 300,
+          easing: 'easeOut',
+        });
+      }
+      if (loadingFillRef.current) {
+        anime({
+          targets: loadingFillRef.current,
+          width: ['0%', '100%'],
+          duration: 1000,
+          easing: 'easeInOutQuad',
+        });
+      }
+    }, 1200);
+
+    // Phase 3: Navigate
+    const t3 = setTimeout(() => {
+      setPhase(3);
+      history.push('/home');
+    }, 2000 + 1200);
+
+    return () => {
+      clearTimeout(t0);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [history]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dark-950"
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Background electric arcs */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
+    <Wrapper>
+      <BgGlow />
+
+      {[...Array(6)].map((_, i) => (
+        <ArcLine
+          key={i}
+          idx={i}
+          ref={(el) => (arcRefs.current[i] = el)}
+        />
+      ))}
+
+      <div style={{ position: 'relative' }}>
+        <BoltBox ref={boltRef}>
+          <span role="img" aria-label="bolt">⚡</span>
+        </BoltBox>
+
+        {phase >= 1 &&
+          [...Array(8)].map((_, i) => (
+            <Particle
               key={i}
-              className="absolute w-px bg-gradient-to-b from-transparent via-brand-400 to-transparent"
-              style={{
-                left: `${15 + i * 15}%`,
-                height: '100%',
-              }}
-              initial={{ opacity: 0, scaleY: 0 }}
-              animate={{
-                opacity: [0, 0.3, 0],
-                scaleY: [0, 1, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                delay: 0.2 * i,
-                repeat: Infinity,
-                repeatDelay: 1,
-              }}
+              ref={(el) => (particlesRef.current[i] = el)}
             />
           ))}
-        </div>
+      </div>
 
-        {/* Lightning bolt icon */}
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={phase >= 0 ? { scale: 1, rotate: 0 } : {}}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="relative"
-        >
-          <motion.div
-            animate={{
-              boxShadow: [
-                '0 0 20px rgba(251, 146, 60, 0.3)',
-                '0 0 60px rgba(251, 146, 60, 0.6)',
-                '0 0 20px rgba(251, 146, 60, 0.3)',
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center"
-          >
-            <span className="text-5xl">⚡</span>
-          </motion.div>
+      <BrandName ref={brandRef}>ElectraRewards</BrandName>
 
-          {/* Orbiting particles */}
-          {phase >= 1 && [...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 rounded-full bg-brand-400"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0],
-                x: [0, Math.cos(i * Math.PI / 4) * 60],
-                y: [0, Math.sin(i * Math.PI / 4) * 60],
-              }}
-              transition={{
-                duration: 1,
-                delay: i * 0.1,
-              }}
-              style={{
-                left: '50%',
-                top: '50%',
-                marginLeft: -4,
-                marginTop: -4,
-              }}
-            />
-          ))}
-        </motion.div>
+      <Tagline ref={taglineRef}>
+        Premium Rewards for Pro Electricians
+      </Tagline>
 
-        {/* Brand name */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={phase >= 1 ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="mt-8 text-center"
-        >
-          <h1 className="text-4xl font-display font-extrabold text-gradient">
-            ElectraRewards
-          </h1>
-        </motion.div>
-
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={phase >= 2 ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="mt-3 text-dark-400 font-medium text-sm tracking-wider uppercase"
-        >
-          Premium Rewards for Pro Electricians
-        </motion.p>
-
-        {/* Loading bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={phase >= 2 ? { opacity: 1 } : {}}
-          className="mt-8 w-48 h-1 bg-dark-800 rounded-full overflow-hidden"
-        >
-          <motion.div
-            initial={{ width: '0%' }}
-            animate={phase >= 2 ? { width: '100%' } : {}}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-            className="h-full bg-gradient-to-r from-brand-500 to-electric-500 rounded-full"
-          />
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      <LoadingBarTrack ref={loadingTrackRef}>
+        <LoadingBarFill ref={loadingFillRef} />
+      </LoadingBarTrack>
+    </Wrapper>
   );
 }

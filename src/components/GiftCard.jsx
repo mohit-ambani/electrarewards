@@ -1,82 +1,198 @@
-import { motion } from 'framer-motion';
+import React from 'react';
+import styled, { keyframes } from 'styled-components';
+import { twGradient } from '../utils/colors';
 
-export default function GiftCard({ gift, index, onSelect }) {
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const CardWrapper = styled.div`
+  opacity: 0;
+  animation: ${fadeInUp} 0.45s ease forwards;
+  animation-delay: ${(props) => props.$delay}s;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+
+const Card = styled.div`
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(248, 250, 252, 0.03);
+  border: 1px solid rgba(248, 250, 252, 0.06);
+  transition: border-color 0.25s ease;
+  width: 100%;
+  min-width: 0;
+
+  &:hover {
+    border-color: rgba(251, 146, 60, 0.25);
+  }
+`;
+
+const ImageArea = styled.div`
+  position: relative;
+  height: 140px;
+  background: ${(props) => props.$gradient};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+`;
+
+const ImageOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.08);
+`;
+
+const DecorCircleA = styled.div`
+  position: absolute;
+  right: -16px;
+  top: -16px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+`;
+
+const DecorCircleB = styled.div`
+  position: absolute;
+  left: -8px;
+  bottom: -16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+`;
+
+const GiftEmoji = styled.span`
+  font-size: 52px;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+`;
+
+const TagBadge = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  z-index: 3;
+`;
+
+const PointsBadge = styled.div`
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fb923c;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+`;
+
+const InfoSection = styled.div`
+  padding: 10px 12px 12px;
+`;
+
+const GiftName = styled.h3`
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const GiftDescription = styled.p`
+  font-size: 11px;
+  color: #64748b;
+  margin: 4px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+`;
+
+const RatingRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+`;
+
+const Stars = styled.div`
+  display: flex;
+`;
+
+const Star = styled.span`
+  font-size: 10px;
+  color: ${(props) => (props.$filled ? '#fbbf24' : '#334155')};
+`;
+
+const RatingValue = styled.span`
+  font-size: 10px;
+  color: #64748b;
+`;
+
+const GiftCard = ({ gift, index, onSelect }) => {
+  const delay = index * 0.06;
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.9 }}
-      transition={{ delay: index * 0.04, type: 'spring', stiffness: 100 }}
-      whileTap={{ scale: 0.96 }}
-      onClick={() => onSelect(gift)}
-      className="relative group cursor-pointer"
-    >
-      <div className="bg-glass rounded-2xl overflow-hidden border border-white/5 hover:border-brand-500/30 transition-all duration-300">
-        {/* Gift Image Area */}
-        <div className={`relative h-36 bg-gradient-to-br ${gift.color} flex items-center justify-center overflow-hidden`}>
-          {/* Decorative elements */}
-          <div className="absolute inset-0 bg-black/10" />
-          <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
-          <div className="absolute -left-2 -bottom-4 w-16 h-16 rounded-full bg-white/5" />
-
-          {/* Shimmer effect */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
-            initial={{ x: '-100%' }}
-            whileInView={{ x: '200%' }}
-            transition={{ duration: 1.5, delay: index * 0.1 }}
-          />
-
-          {/* Gift emoji */}
-          <motion.span
-            className="text-6xl relative z-10 drop-shadow-lg"
-            whileHover={{ scale: 1.2, rotate: 10 }}
-            transition={{ type: 'spring' }}
-          >
-            {gift.image}
-          </motion.span>
-
-          {/* Tag */}
-          {gift.tag && (
-            <motion.div
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3 + index * 0.05 }}
-              className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-black/40 backdrop-blur-sm text-[10px] font-bold text-white"
-            >
-              {gift.tag}
-            </motion.div>
-          )}
-
-          {/* Points badge */}
-          <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-xl bg-black/50 backdrop-blur-md">
-            <p className="text-xs font-bold text-brand-400">
-              ⚡ {gift.points.toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        {/* Gift Info */}
-        <div className="p-3">
-          <h3 className="text-sm font-bold text-white leading-tight line-clamp-1">
-            {gift.name}
-          </h3>
-          <p className="text-[11px] text-dark-400 mt-1 line-clamp-1">
-            {gift.description}
-          </p>
-          <div className="flex items-center gap-1 mt-2">
-            <div className="flex">
+    <CardWrapper $delay={delay} onClick={() => onSelect(gift)}>
+      <Card>
+        <ImageArea $gradient={twGradient(gift.color)}>
+          <ImageOverlay />
+          <DecorCircleA />
+          <DecorCircleB />
+          <GiftEmoji>{gift.image}</GiftEmoji>
+          {gift.tag && <TagBadge>{gift.tag}</TagBadge>}
+          <PointsBadge>
+            <span>&#9889;</span> {gift.points.toLocaleString()}
+          </PointsBadge>
+        </ImageArea>
+        <InfoSection>
+          <GiftName>{gift.name}</GiftName>
+          <GiftDescription>{gift.description}</GiftDescription>
+          <RatingRow>
+            <Stars>
               {[...Array(5)].map((_, i) => (
-                <span key={i} className={`text-[10px] ${i < Math.floor(gift.rating) ? 'text-amber-400' : 'text-dark-600'}`}>
-                  ★
-                </span>
+                <Star key={i} $filled={i < Math.floor(gift.rating)}>
+                  &#9733;
+                </Star>
               ))}
-            </div>
-            <span className="text-[10px] text-dark-400">{gift.rating}</span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
+            </Stars>
+            <RatingValue>{gift.rating}</RatingValue>
+          </RatingRow>
+        </InfoSection>
+      </Card>
+    </CardWrapper>
   );
-}
+};
+
+export default GiftCard;

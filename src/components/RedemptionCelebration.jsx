@@ -1,212 +1,386 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import React, { useState, useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
+import { useHistory } from 'react-router-dom';
+import Confetti from 'react-dom-confetti';
+import anime from 'animejs';
+import useAppStore from '../store/useAppStore';
 
-export default function RedemptionCelebration({ gift, onContinue }) {
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 20px rgba(34,197,94,0.3); }
+  50% { box-shadow: 0 0 60px rgba(34,197,94,0.5); }
+`;
+
+const floatUp = keyframes`
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100px); opacity: 0; }
+`;
+
+const shimmer = keyframes`
+  0% { transform: translateX(-200px); }
+  100% { transform: translateX(400px); }
+`;
+
+const gradientPulse = keyframes`
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.5); }
+`;
+
+const bobFloat = keyframes`
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+`;
+
+const Wrapper = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #020617;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  max-width: 430px;
+  margin: 0 auto;
+`;
+
+const BgGlow1 = styled.div`
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  background: rgba(249,115,22,0.2);
+  filter: blur(60px);
+  animation: ${gradientPulse} 3s ease-in-out infinite;
+`;
+
+const BgGlow2 = styled.div`
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 256px;
+  height: 256px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.2);
+  filter: blur(60px);
+  animation: ${gradientPulse} 4s ease-in-out infinite reverse;
+`;
+
+const FloatingParticle = styled.div`
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: ${(p) => p.color};
+  left: ${(p) => p.x}%;
+  top: ${(p) => p.y}%;
+  animation: ${floatUp} ${(p) => 2 + p.dur}s ease-in ${(p) => p.delay}s infinite;
+`;
+
+const MainContent = styled.div`
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 0 32px;
+`;
+
+const CheckCircle = styled.div`
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4ade80, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  animation: ${pulseGlow} 2s ease-in-out infinite;
+  opacity: 0;
+  transform: scale(0) rotate(-180deg);
+`;
+
+const CheckMark = styled.span`
+  font-size: 48px;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0);
+`;
+
+const Title = styled.h1`
+  font-size: 30px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(30px);
+`;
+
+const Subtitle = styled.p`
+  color: #94a3b8;
+  font-size: 14px;
+  margin-top: 8px;
+  opacity: 0;
+  transform: translateY(20px);
+`;
+
+const GiftCard = styled.div`
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(40px) scale(0.8);
+`;
+
+const GiftCardShimmer = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: ${shimmer} 3s ease-in-out infinite;
+`;
+
+const GiftEmoji = styled.span`
+  font-size: 64px;
+  display: block;
+  animation: ${bobFloat} 2s ease-in-out infinite;
+`;
+
+const GiftName = styled.h3`
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 12px;
+`;
+
+const PointsSpent = styled.p`
+  font-size: 14px;
+  font-weight: 700;
+  color: #fb923c;
+  margin-top: 4px;
+`;
+
+const CTAButton = styled.button`
+  margin-top: 32px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(249,115,22,0.3);
+  opacity: 0;
+  transform: translateY(20px);
+`;
+
+const ConfettiWrapper = styled.div`
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  z-index: 100;
+`;
+
+const confettiConfig = {
+  angle: 90,
+  spread: 360,
+  startVelocity: 40,
+  elementCount: 80,
+  dragFriction: 0.12,
+  duration: 3000,
+  stagger: 3,
+  width: '10px',
+  height: '10px',
+  colors: ['#fb923c', '#f97316', '#3b82f6', '#22c55e', '#fbbf24', '#a855f7'],
+};
+
+export default function RedemptionCelebration() {
+  const history = useHistory();
+  const { selectedGift } = useAppStore();
   const [phase, setPhase] = useState(0);
+  const [confettiActive, setConfettiActive] = useState(false);
 
-  const fireConfetti = useCallback(() => {
-    const count = 200;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+  const checkCircleRef = useRef(null);
+  const checkMarkRef = useRef(null);
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const giftCardRef = useRef(null);
+  const ctaRef = useRef(null);
 
-    function fire(particleRatio, opts) {
-      confetti({
-        ...defaults,
-        particleCount: Math.floor(count * particleRatio),
-        origin: { x: Math.random(), y: Math.random() * 0.3 },
-        ...opts,
-      });
-    }
-
-    fire(0.25, { spread: 26, startVelocity: 55 });
-    fire(0.2, { spread: 60 });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-    fire(0.1, { spread: 120, startVelocity: 45 });
-  }, []);
+  const gift = selectedGift || { name: 'Your Gift', image: '🎁', points: 0 };
 
   useEffect(() => {
-    // Phase transitions
-    const timers = [
-      setTimeout(() => { setPhase(1); fireConfetti(); }, 300),
-      setTimeout(() => setPhase(2), 1500),
-      setTimeout(() => { setPhase(3); fireConfetti(); }, 2500),
-      setTimeout(() => setPhase(4), 4000),
-    ];
+    // Phase 1: Checkmark
+    const t1 = setTimeout(() => {
+      setPhase(1);
+      setConfettiActive(true);
+      setTimeout(() => setConfettiActive(false), 100);
 
-    // Continuous confetti
-    const confettiInterval = setInterval(() => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#fb923c', '#f97316', '#3b82f6'],
-        zIndex: 100,
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#fb923c', '#f97316', '#3b82f6'],
-        zIndex: 100,
-      });
-    }, 100);
+      if (checkCircleRef.current) {
+        anime({
+          targets: checkCircleRef.current,
+          scale: [0, 1],
+          rotate: [-180, 0],
+          opacity: [0, 1],
+          duration: 800,
+          easing: 'spring(1, 80, 10, 0)',
+        });
+      }
+      if (checkMarkRef.current) {
+        anime({
+          targets: checkMarkRef.current,
+          scale: [0, 1],
+          opacity: [0, 1],
+          duration: 400,
+          delay: 500,
+          easing: 'spring(1, 80, 10, 0)',
+        });
+      }
+    }, 300);
 
-    const stopConfetti = setTimeout(() => clearInterval(confettiInterval), 5000);
+    // Phase 2: Title
+    const t2 = setTimeout(() => {
+      setPhase(2);
+      if (titleRef.current) {
+        anime({
+          targets: titleRef.current,
+          translateY: [30, 0],
+          opacity: [0, 1],
+          duration: 600,
+          easing: 'easeOutExpo',
+        });
+      }
+      if (subtitleRef.current) {
+        anime({
+          targets: subtitleRef.current,
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 500,
+          delay: 200,
+          easing: 'easeOutExpo',
+        });
+      }
+    }, 1500);
+
+    // Phase 3: Gift card
+    const t3 = setTimeout(() => {
+      setPhase(3);
+      setConfettiActive(true);
+      setTimeout(() => setConfettiActive(false), 100);
+
+      if (giftCardRef.current) {
+        anime({
+          targets: giftCardRef.current,
+          translateY: [40, 0],
+          scale: [0.8, 1],
+          opacity: [0, 1],
+          duration: 600,
+          easing: 'spring(1, 80, 10, 0)',
+        });
+      }
+    }, 2500);
+
+    // Phase 4: CTA
+    const t4 = setTimeout(() => {
+      setPhase(4);
+      if (ctaRef.current) {
+        anime({
+          targets: ctaRef.current,
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 500,
+          easing: 'easeOutExpo',
+        });
+      }
+    }, 4000);
 
     return () => {
-      timers.forEach(clearTimeout);
-      clearInterval(confettiInterval);
-      clearTimeout(stopConfetti);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
-  }, [fireConfetti]);
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[60] bg-dark-950 flex flex-col items-center justify-center overflow-hidden max-w-[430px] mx-auto"
-    >
-      {/* Background glow effects */}
-      <div className="absolute inset-0">
-        <motion.div
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.1, 0.3, 0.1],
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-brand-500/20 blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1.5, 1, 1.5],
-            opacity: [0.05, 0.2, 0.05],
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-electric-500/20 blur-3xl"
-        />
-      </div>
+    <Wrapper>
+      <BgGlow1 />
+      <BgGlow2 />
 
-      {/* Floating particles */}
       {[...Array(20)].map((_, i) => (
-        <motion.div
+        <FloatingParticle
           key={i}
-          className="absolute w-1 h-1 rounded-full"
-          style={{
-            background: i % 2 === 0 ? '#fb923c' : '#3b82f6',
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [-20, -100],
-            opacity: [0, 1, 0],
-            scale: [0, 1.5, 0],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            delay: Math.random() * 3,
-            repeat: Infinity,
-          }}
+          color={i % 2 === 0 ? '#fb923c' : '#3b82f6'}
+          x={Math.random() * 100}
+          y={60 + Math.random() * 40}
+          dur={Math.random() * 2}
+          delay={Math.random() * 3}
         />
       ))}
 
-      {/* Main content */}
-      <div className="relative z-10 text-center px-8">
-        {/* Success checkmark */}
-        <AnimatePresence>
-          {phase >= 1 && (
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              className="mx-auto mb-6"
-            >
-              <motion.div
-                animate={{
-                  boxShadow: [
-                    '0 0 20px rgba(34, 197, 94, 0.3)',
-                    '0 0 60px rgba(34, 197, 94, 0.5)',
-                    '0 0 20px rgba(34, 197, 94, 0.3)',
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center"
-              >
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5, type: 'spring' }}
-                  className="text-5xl"
-                >
-                  ✓
-                </motion.span>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <ConfettiWrapper>
+        <Confetti active={confettiActive} config={confettiConfig} />
+      </ConfettiWrapper>
 
-        {/* Title */}
+      <MainContent>
+        {phase >= 1 && (
+          <CheckCircle ref={checkCircleRef}>
+            <CheckMark ref={checkMarkRef}>✓</CheckMark>
+          </CheckCircle>
+        )}
+
         {phase >= 2 && (
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-          >
-            <h1 className="text-3xl font-display font-extrabold text-gradient-gold">
-              Congratulations! 🎉
-            </h1>
-            <p className="text-dark-300 mt-2 text-sm">
+          <>
+            <Title ref={titleRef}>Congratulations! 🎉</Title>
+            <Subtitle ref={subtitleRef}>
               Your gift has been successfully redeemed
-            </p>
-          </motion.div>
+            </Subtitle>
+          </>
         )}
 
-        {/* Gift card */}
         {phase >= 3 && (
-          <motion.div
-            initial={{ y: 40, opacity: 0, scale: 0.8 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ type: 'spring' }}
-            className="mt-8 p-6 bg-glass rounded-3xl relative overflow-hidden"
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-              animate={{ x: [-200, 400] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-            <motion.span
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-6xl block"
-            >
-              {gift.image}
-            </motion.span>
-            <h3 className="text-lg font-bold text-white mt-3">{gift.name}</h3>
-            <p className="text-brand-400 text-sm font-bold mt-1">
+          <GiftCard ref={giftCardRef}>
+            <GiftCardShimmer />
+            <GiftEmoji>{gift.image}</GiftEmoji>
+            <GiftName>{gift.name}</GiftName>
+            <PointsSpent>
               ⚡ {gift.points.toLocaleString()} Points Redeemed
-            </p>
-          </motion.div>
+            </PointsSpent>
+          </GiftCard>
         )}
 
-        {/* CTA */}
         {phase >= 4 && (
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onContinue}
-            className="mt-8 w-full py-4 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-base shadow-lg shadow-brand-500/30 relative overflow-hidden"
-          >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-              animate={{ x: [-200, 400] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            <span className="relative z-10">Track Your Gift 📦</span>
-          </motion.button>
+          <CTAButton ref={ctaRef} onClick={() => history.push('/tracking')}>
+            <ShimmerOverlayInner />
+            <span style={{ position: 'relative', zIndex: 10 }}>
+              Track Your Gift 📦
+            </span>
+          </CTAButton>
         )}
-      </div>
-    </motion.div>
+      </MainContent>
+    </Wrapper>
   );
 }
+
+const shimmerInner = keyframes`
+  0% { transform: translateX(-200px); }
+  100% { transform: translateX(400px); }
+`;
+
+const ShimmerOverlayInner = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: ${shimmerInner} 2s ease-in-out infinite;
+`;
