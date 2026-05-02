@@ -55,7 +55,7 @@ const PAGE_CONFIG = {
 
 const Wrapper = styled.div`
   min-height: 100vh;
-  background: #020617;
+  background: #ffffff;
   max-width: 430px;
   margin: 0 auto;
   padding-bottom: 96px;
@@ -148,7 +148,7 @@ const HeaderEmoji = styled.span`
 const SectionTitle = styled.h2`
   font-size: 14px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-bottom: 12px;
 `;
 
@@ -171,8 +171,8 @@ const FeaturedRow = styled.div`
 const FeaturedCard = styled.div`
   flex-shrink: 0;
   width: 220px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
@@ -230,7 +230,7 @@ const FeaturedInfo = styled.div`
 const FeaturedName = styled.p`
   font-size: 12px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -257,7 +257,7 @@ const RatingStar = styled.span`
 
 const RatingVal = styled.span`
   font-size: 10px;
-  color: #94a3b8;
+  color: #9ca3af;
 `;
 
 const GridSection = styled.div`
@@ -271,8 +271,8 @@ const GiftGrid = styled.div`
 `;
 
 const GridCard = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -331,7 +331,7 @@ const GridInfo = styled.div`
 const GridName = styled.p`
   font-size: 11px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -9,6 +9,7 @@ import giftsRouter from './routes/gifts.js';
 import redemptionsRouter from './routes/redemptions.js';
 import adminApiRouter from './routes/admin.js';
 import adminPagesRouter from './routes/adminPages.js';
+import bulkUploadRouter from './routes/bulkUpload.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,7 @@ app.use(express.static(join(__dirname, 'public')));
 app.use('/api/gifts', giftsRouter);
 app.use('/api/redemptions', redemptionsRouter);
 app.use('/api/admin', adminApiRouter);
+app.use('/api/admin/bulk', bulkUploadRouter);
 
 // Admin page routes (EJS)
 app.use('/admin', adminPagesRouter);

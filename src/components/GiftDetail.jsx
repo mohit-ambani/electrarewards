@@ -35,7 +35,7 @@ const Wrapper = styled.div`
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #020617;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   max-width: 430px;
@@ -154,7 +154,7 @@ const Content = styled.div`
 const GiftName = styled.h2`
   font-size: 24px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #1a1a2e;
   line-height: 1.3;
   opacity: 0;
 `;
@@ -175,28 +175,28 @@ const Stars = styled.div`
 
 const Star = styled.span`
   font-size: 14px;
-  color: ${(p) => (p.filled ? '#fbbf24' : '#334155')};
+  color: ${(p) => (p.filled ? '#fbbf24' : '#d1d5db')};
 `;
 
 const RatingVal = styled.span`
   font-size: 13px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-left: 4px;
 `;
 
 const Dot = styled.span`
-  color: #334155;
+  color: #d1d5db;
 `;
 
 const Category = styled.span`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   text-transform: capitalize;
 `;
 
 const Description = styled.p`
   font-size: 14px;
-  color: #cbd5e1;
+  color: #4b5563;
   margin-top: 16px;
   line-height: 1.6;
   opacity: 0;
@@ -205,8 +205,8 @@ const Description = styled.p`
 const PointsCard = styled.div`
   margin-top: 24px;
   padding: 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   opacity: 0;
 `;
@@ -219,7 +219,7 @@ const PointsRow = styled.div`
 
 const PointsLabel = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
   margin: 0;
 `;
 
@@ -249,7 +249,7 @@ const GreenBar = styled.div`
 const ProgressBarTrack = styled.div`
   margin-top: 12px;
   height: 8px;
-  background: #1e293b;
+  background: #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
 `;
@@ -263,7 +263,7 @@ const ProgressBarFill = styled.div`
 
 const ProgressLabel = styled.p`
   font-size: 10px;
-  color: #94a3b8;
+  color: #6b7280;
   text-align: center;
   margin: 6px 0 0;
 `;
@@ -278,8 +278,8 @@ const DeliveryGrid = styled.div`
 const DeliveryItem = styled.div`
   text-align: center;
   padding: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 12px;
   opacity: 0;
 `;
@@ -291,20 +291,20 @@ const DeliveryIcon = styled.span`
 const DeliveryLabel = styled.p`
   font-size: 10px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin: 4px 0 0;
 `;
 
 const DeliverySub = styled.p`
   font-size: 9px;
-  color: #94a3b8;
+  color: #9ca3af;
   margin: 2px 0 0;
 `;
 
 const DeficitCard = styled.div`
   margin-top: 20px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 16px;
   text-align: center;
@@ -312,14 +312,14 @@ const DeficitCard = styled.div`
 
 const DeficitText = styled.p`
   font-size: 14px;
-  color: #cbd5e1;
+  color: #4b5563;
   margin-top: 8px;
 `;
 
 const EarnTitle = styled.p`
   font-size: 12px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin: 16px 0 8px;
 `;
 
@@ -330,8 +330,8 @@ const EarnGrid = styled.div`
 `;
 
 const EarnItem = styled.div`
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -344,7 +344,7 @@ const EarnIcon = styled.span`
 const EarnLabel = styled.p`
   font-size: 10px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin: 4px 0 0;
 `;
 
@@ -361,7 +361,7 @@ const BottomCTA = styled.div`
   left: 0;
   right: 0;
   padding: 20px;
-  background: linear-gradient(to top, #020617 60%, transparent);
+  background: linear-gradient(to top, #ffffff 60%, transparent);
   max-width: 430px;
   margin: 0 auto;
   z-index: 30;
@@ -401,9 +401,9 @@ const LockedBtn = styled.div`
   border-radius: 16px;
   font-size: 16px;
   font-weight: 700;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e8ecf1;
+  color: #6b7280;
   text-align: center;
   opacity: 0;
 `;
@@ -549,7 +549,7 @@ export default function GiftDetail() {
   if (!gift) {
     return (
       <Wrapper style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#94a3b8' }}>Gift not found</p>
+        <p style={{ color: '#6b7280' }}>Gift not found</p>
       </Wrapper>
     );
   }
@@ -563,18 +563,26 @@ export default function GiftDetail() {
       confirmButtonText: 'Confirm ⚡',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#f97316',
-      cancelButtonColor: '#334155',
-      background: '#0f172a',
-      color: '#f8fafc',
-      customClass: {
-        popup: 'swal-dark-popup',
-      },
+      cancelButtonColor: '#d1d5db',
+      background: '#fff',
+      color: '#1a1a2e',
     });
 
     if (result.isConfirmed) {
-      redeemGift(gift);
-      createRedemption(gift.id);
-      history.push('/celebrate');
+      try {
+        const backendData = await createRedemption(gift.id);
+        redeemGift(gift, backendData);
+        history.push('/celebrate');
+      } catch (err) {
+        Swal.fire({
+          title: 'Redemption Failed',
+          text: 'Could not connect to server. Please make sure the backend is running.',
+          icon: 'error',
+          confirmButtonColor: '#f97316',
+          background: '#fff',
+          color: '#1a1a2e',
+        });
+      }
     }
   };
 

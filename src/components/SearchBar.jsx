@@ -4,27 +4,25 @@ import { FiSearch, FiX } from 'react-icons/fi';
 import useAppStore from '../store/useAppStore';
 
 const Wrapper = styled.div`
-  padding: 12px 16px 0;
+  padding: 8px 10px 0;
 `;
 
 const InputContainer = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 48px;
-  border-radius: 16px;
-  background: rgba(248, 250, 252, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 0 12px;
+  height: 38px;
+  border-radius: 10px;
+  background: #f1f5f9;
   border: 1px solid
     ${(props) =>
       props.$focused
-        ? 'rgba(251, 146, 60, 0.4)'
-        : 'rgba(248, 250, 252, 0.06)'};
+        ? '#f97316'
+        : '#e8ecf1'};
   box-shadow: ${(props) =>
     props.$focused
-      ? '0 0 20px rgba(251, 146, 60, 0.12), inset 0 0 0 1px rgba(251, 146, 60, 0.1)'
+      ? '0 0 0 2px rgba(249, 115, 22, 0.15)'
       : 'none'};
   transition: border 0.25s ease, box-shadow 0.25s ease;
 `;
@@ -32,11 +30,11 @@ const InputContainer = styled.div`
 const SearchIcon = styled.span`
   display: flex;
   align-items: center;
-  font-size: 18px;
-  color: ${(props) => (props.$focused ? '#fb923c' : '#64748b')};
-  margin-right: 12px;
+  font-size: 15px;
+  color: ${(props) => (props.$focused ? '#fb923c' : '#9ca3af')};
+  margin-right: 10px;
   transition: color 0.25s ease, transform 0.25s ease;
-  transform: ${(props) => (props.$focused ? 'scale(1.15)' : 'scale(1)')};
+  transform: ${(props) => (props.$focused ? 'scale(1.1)' : 'scale(1)')};
 `;
 
 const Input = styled.input`
@@ -44,12 +42,12 @@ const Input = styled.input`
   background: transparent;
   border: none;
   outline: none;
-  font-size: 14px;
-  color: #f8fafc;
+  font-size: 13px;
+  color: #1a1a2e;
   caret-color: #fb923c;
 
   &::placeholder {
-    color: #475569;
+    color: #9ca3af;
   }
 `;
 
@@ -61,15 +59,15 @@ const ClearButton = styled.button`
   height: 22px;
   border-radius: 50%;
   border: none;
-  background: rgba(248, 250, 252, 0.1);
-  color: #94a3b8;
+  background: #e5e7eb;
+  color: #6b7280;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.2s ease;
 
   &:active {
     transform: scale(0.88);
-    background: rgba(248, 250, 252, 0.15);
+    background: #d1d5db;
   }
 `;
 

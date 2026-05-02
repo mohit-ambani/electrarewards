@@ -46,7 +46,7 @@ const Wrapper = styled.div`
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #020617;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   max-width: 430px;
@@ -56,8 +56,8 @@ const Wrapper = styled.div`
 
 const Header = styled.div`
   padding: 20px;
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: #ffffff;
+  border-bottom: 1px solid #e8ecf1;
   flex-shrink: 0;
 `;
 
@@ -70,12 +70,12 @@ const HeaderRow = styled.div`
 const HeaderTitle = styled.h2`
   font-size: 20px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #1a1a2e;
 `;
 
 const HeaderSub = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 2px;
 `;
 
@@ -106,7 +106,7 @@ const LiveText = styled.span`
 const ProgressTrack = styled.div`
   margin-top: 12px;
   height: 6px;
-  background: #1e293b;
+  background: #e5e7eb;
   border-radius: 6px;
   overflow: hidden;
 `;
@@ -127,14 +127,14 @@ const ProgressInfo = styled.div`
 
 const ProgressText = styled.span`
   font-size: 10px;
-  color: ${(p) => p.color || '#64748b'};
+  color: ${(p) => p.color || '#6b7280'};
 `;
 
 const GiftSummary = styled.div`
   margin: 16px 20px 0;
   padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -162,7 +162,7 @@ const GiftInfo = styled.div`
 const GiftName = styled.p`
   font-size: 14px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -170,15 +170,15 @@ const GiftName = styled.p`
 
 const GiftDelivery = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 2px;
 `;
 
 const CountdownBar = styled.div`
   margin: 12px 20px 0;
   padding: 10px 16px;
-  background: rgba(249,115,22,0.08);
-  border: 1px solid rgba(249,115,22,0.15);
+  background: rgba(249,115,22,0.06);
+  border: 1px solid rgba(249,115,22,0.12);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -188,7 +188,7 @@ const CountdownBar = styled.div`
 
 const CountdownLabel = styled.span`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
 `;
 
 const CountdownValue = styled.span`
@@ -244,7 +244,7 @@ const VertLine = styled.div`
   width: 2px;
   flex: 1;
   min-height: 16px;
-  background: ${(p) => (p.active ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.06)')};
+  background: ${(p) => (p.active ? 'rgba(249,115,22,0.3)' : '#e5e7eb')};
   margin: 4px 0;
 `;
 
@@ -257,28 +257,28 @@ const StageContent = styled.div`
 const StageTitle = styled.p`
   font-size: 14px;
   font-weight: 700;
-  color: ${(p) => p.color || '#f8fafc'};
+  color: ${(p) => p.color || '#1a1a2e'};
 `;
 
 const StageSubtitle = styled.p`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 2px;
 `;
 
 const StageDetail = styled.div`
   font-size: 11px;
-  color: #cbd5e1;
+  color: #4b5563;
   margin-top: 6px;
   padding: 8px 12px;
-  background: rgba(255,255,255,0.03);
+  background: #f8f9fb;
   border-radius: 8px;
-  border-left: 2px solid ${(p) => p.borderColor || 'rgba(255,255,255,0.1)'};
+  border-left: 2px solid ${(p) => p.borderColor || '#e8ecf1'};
 `;
 
 const StageTime = styled.p`
   font-size: 10px;
-  color: #475569;
+  color: #9ca3af;
   margin-top: 4px;
 `;
 
@@ -300,18 +300,18 @@ const SkipBtn = styled.button`
 const DemoNote = styled.p`
   text-align: center;
   font-size: 10px;
-  color: #475569;
+  color: #9ca3af;
   margin: -12px 0 20px;
 `;
 
 export default function TrackingScreen() {
   const history = useHistory();
-  const { selectedGift } = useAppStore();
+  const { selectedGift, lastRedemption } = useAppStore();
   const gift = selectedGift || { name: 'Your Gift', image: '🎁', points: 0 };
 
-  const orderId = useMemo(() => generateOrderId(), []);
-  const docket = useMemo(() => generateDocket(), []);
-  const otp = useMemo(() => generateOTP(), []);
+  const orderId = useMemo(() => lastRedemption?.order_id || generateOrderId(), [lastRedemption]);
+  const docket = useMemo(() => lastRedemption?.docket_number || generateDocket(), [lastRedemption]);
+  const otp = useMemo(() => lastRedemption?.otp || generateOTP(), [lastRedemption]);
 
   const [currentStage, setCurrentStage] = useState(0);
   const [countdown, setCountdown] = useState(60);
@@ -399,7 +399,7 @@ export default function TrackingScreen() {
         <HeaderRow>
           <div>
             <HeaderTitle>Live Tracking</HeaderTitle>
-            <HeaderSub>Order #ELR-2026-{orderId}</HeaderSub>
+            <HeaderSub>Order #{orderId}</HeaderSub>
           </div>
           <LiveBadge>
             <LiveDot />

@@ -17,7 +17,7 @@ const pulseGlow = keyframes`
 
 const Wrapper = styled.div`
   min-height: 100vh;
-  background: #020617;
+  background: #ffffff;
   max-width: 430px;
   margin: 0 auto;
   padding-bottom: 96px;
@@ -102,12 +102,13 @@ const PointsCard = styled.div`
   margin: -16px 16px 0;
   position: relative;
   z-index: 10;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #ffffff;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 20px;
   opacity: 0;
   transform: translateY(20px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
 `;
 
 const PointsRow = styled.div`
@@ -118,7 +119,7 @@ const PointsRow = styled.div`
 
 const PointsLabel = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
 `;
 
 const PointsValue = styled.p`
@@ -160,12 +161,12 @@ const ProgressHeader = styled.div`
 
 const ProgressText = styled.span`
   font-size: 10px;
-  color: #94a3b8;
+  color: #6b7280;
 `;
 
 const ProgressTrack = styled.div`
   height: 6px;
-  background: #1e293b;
+  background: #e5e7eb;
   border-radius: 6px;
   overflow: hidden;
 `;
@@ -185,8 +186,8 @@ const StatsGrid = styled.div`
 `;
 
 const StatItem = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -201,13 +202,13 @@ const StatIcon = styled.span`
 const StatValue = styled.p`
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-top: 4px;
 `;
 
 const StatLabel = styled.p`
   font-size: 10px;
-  color: #94a3b8;
+  color: #9ca3af;
 `;
 
 const SettingsSection = styled.div`
@@ -218,7 +219,7 @@ const SettingsSection = styled.div`
 const SettingsTitle = styled.h3`
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 12px;
@@ -236,7 +237,7 @@ const MenuItem = styled.div`
   transform: translateX(-20px);
   transition: background 0.2s;
   &:hover {
-    background: rgba(255,255,255,0.02);
+    background: rgba(0,0,0,0.02);
   }
 `;
 
@@ -251,18 +252,18 @@ const MenuText = styled.div`
 const MenuLabel = styled.p`
   font-size: 14px;
   font-weight: 500;
-  color: #f8fafc;
+  color: #1a1a2e;
 `;
 
 const MenuSub = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #9ca3af;
   margin-top: 1px;
 `;
 
 const MenuArrow = styled.span`
   font-size: 14px;
-  color: #334155;
+  color: #d1d5db;
 `;
 
 const tierConfig = {
@@ -285,12 +286,12 @@ const tierConfig = {
 };
 
 const settingsMenu = [
-  { icon: '📦', label: 'Order History', sub: '12 orders' },
-  { icon: '📍', label: 'Delivery Address', sub: 'Sector 21, Noida' },
-  { icon: '🔔', label: 'Notifications', sub: 'All enabled' },
-  { icon: '🎯', label: 'Earn More Points', sub: 'View missions' },
-  { icon: '📞', label: 'Support', sub: '24/7 available' },
-  { icon: '📄', label: 'Terms & Conditions', sub: '' },
+  { icon: '📦', label: 'Order History', sub: '12 orders', path: '/orders' },
+  { icon: '📍', label: 'Delivery Address', sub: 'Sector 21, Noida', path: '/address' },
+  { icon: '🔔', label: 'Notifications', sub: 'All enabled', path: '/notifications' },
+  { icon: '🎯', label: 'Earn More Points', sub: 'View missions', path: '/earn' },
+  { icon: '📞', label: 'Support', sub: '24/7 available', path: '/support' },
+  { icon: '📄', label: 'Terms & Conditions', sub: '', path: '/terms' },
 ];
 
 const stats = [
@@ -433,7 +434,7 @@ export default function ProfileScreen() {
       <SettingsSection>
         <SettingsTitle>Settings</SettingsTitle>
         {settingsMenu.map((item, i) => (
-          <MenuItem key={i} ref={(el) => (menuRefs.current[i] = el)}>
+          <MenuItem key={i} ref={(el) => (menuRefs.current[i] = el)} onClick={() => history.push(item.path)}>
             <MenuIcon>{item.icon}</MenuIcon>
             <MenuText>
               <MenuLabel>{item.label}</MenuLabel>

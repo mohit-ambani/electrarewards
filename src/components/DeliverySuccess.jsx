@@ -34,7 +34,7 @@ const Wrapper = styled.div`
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: #020617;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,7 +62,7 @@ const Ray = styled.div`
   height: 200px;
   transform-origin: bottom center;
   transform: rotate(${(p) => p.deg}deg);
-  background: linear-gradient(to top, rgba(249,115,22,0.1), transparent);
+  background: linear-gradient(to top, rgba(249,115,22,0.06), transparent);
 `;
 
 const FloatingEmoji = styled.span`
@@ -101,10 +101,7 @@ const TrophyEmoji = styled.span`
 const Title = styled.h1`
   font-size: 30px;
   font-weight: 800;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1a1a2e;
   margin-top: 32px;
   opacity: 0;
   transform: translateY(30px);
@@ -112,7 +109,7 @@ const Title = styled.h1`
 
 const Description = styled.p`
   font-size: 14px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 12px;
   max-width: 300px;
   margin-left: auto;
@@ -125,8 +122,8 @@ const Description = styled.p`
 const GiftCard = styled.div`
   margin-top: 32px;
   padding: 20px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 24px;
   position: relative;
   overflow: hidden;
@@ -137,7 +134,7 @@ const GiftCard = styled.div`
 const GiftCardShimmer = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.04), transparent);
   animation: ${shimmer} 3s ease-in-out infinite;
 `;
 
@@ -151,7 +148,7 @@ const GiftEmoji = styled.span`
 const GiftName = styled.h3`
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-top: 12px;
   position: relative;
   z-index: 5;
@@ -169,12 +166,12 @@ const DeliveryMeta = styled.div`
 
 const MetaTag = styled.span`
   font-size: 11px;
-  color: ${(p) => p.color || '#94a3b8'};
+  color: ${(p) => p.color || '#6b7280'};
   font-weight: ${(p) => (p.bold ? '600' : '400')};
 `;
 
 const MetaDot = styled.span`
-  color: #334155;
+  color: #d1d5db;
 `;
 
 const RatingSection = styled.div`
@@ -185,7 +182,7 @@ const RatingSection = styled.div`
 
 const RatingLabel = styled.p`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-bottom: 8px;
 `;
 

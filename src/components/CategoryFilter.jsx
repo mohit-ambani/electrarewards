@@ -4,14 +4,14 @@ import useAppStore from '../store/useAppStore';
 import { giftCategories } from '../data/gifts';
 
 const Wrapper = styled.div`
-  padding: 16px 0 8px;
+  padding: 8px 0 4px;
 `;
 
 const ScrollContainer = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
-  padding: 0 16px 8px;
+  padding: 0 10px 6px;
   -ms-overflow-style: none;
   scrollbar-width: none;
 
@@ -23,20 +23,17 @@ const ScrollContainer = styled.div`
 const Pill = styled.button`
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 16px;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 14px;
   border: ${(props) =>
-    props.$active ? 'none' : '1px solid rgba(248, 250, 252, 0.06)'};
+    props.$active ? 'none' : '1px solid #e8ecf1'};
   background: ${(props) =>
     props.$active
       ? 'linear-gradient(135deg, #fb923c, #ea580c)'
-      : 'rgba(248, 250, 252, 0.05)'};
-  backdrop-filter: ${(props) => (props.$active ? 'none' : 'blur(8px)')};
-  -webkit-backdrop-filter: ${(props) =>
-    props.$active ? 'none' : 'blur(8px)'};
-  color: ${(props) => (props.$active ? '#ffffff' : '#94a3b8')};
-  font-size: 12px;
+      : '#f1f5f9'};
+  color: ${(props) => (props.$active ? '#ffffff' : '#6b7280')};
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -50,7 +47,7 @@ const Pill = styled.button`
 
   &:hover {
     border-color: ${(props) =>
-      props.$active ? 'transparent' : 'rgba(251, 146, 60, 0.25)'};
+      props.$active ? 'transparent' : '#d1d5db'};
   }
 `;
 

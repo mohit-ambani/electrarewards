@@ -3,6 +3,7 @@ import { Layout, Menu } from 'antd';
 import {
   DashboardOutlined,
   ShoppingOutlined,
+  UploadOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -16,12 +17,14 @@ const AdminLayout = ({ children }) => {
 
   const getSelectedKey = () => {
     if (location.pathname.startsWith('/admin/redemptions')) return 'redemptions';
+    if (location.pathname.startsWith('/admin/bulk-upload')) return 'bulk-upload';
     return 'dashboard';
   };
 
   const handleMenuClick = ({ key }) => {
     if (key === 'dashboard') history.push('/admin');
     if (key === 'redemptions') history.push('/admin/redemptions');
+    if (key === 'bulk-upload') history.push('/admin/bulk-upload');
   };
 
   return (
@@ -84,6 +87,9 @@ const AdminLayout = ({ children }) => {
           <Menu.Item key="redemptions" icon={<ShoppingOutlined />}>
             Redemptions
           </Menu.Item>
+          <Menu.Item key="bulk-upload" icon={<UploadOutlined />}>
+            Bulk Upload
+          </Menu.Item>
         </Menu>
       </Sider>
 
@@ -99,7 +105,7 @@ const AdminLayout = ({ children }) => {
           }}
         >
           <span style={{ fontSize: 16, fontWeight: 600 }}>
-            {getSelectedKey() === 'dashboard' ? 'Dashboard' : 'Redemptions'}
+            {getSelectedKey() === 'dashboard' ? 'Dashboard' : getSelectedKey() === 'bulk-upload' ? 'Bulk Upload' : 'Redemptions'}
           </span>
         </Header>
 

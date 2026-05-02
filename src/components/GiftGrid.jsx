@@ -6,32 +6,32 @@ import { getGiftsByCategory } from '../data/gifts';
 import GiftCard from './GiftCard';
 
 const Wrapper = styled.div`
-  padding: 0 16px 100px;
+  padding: 0 10px 90px;
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin: 0;
 `;
 
 const GiftCount = styled.span`
-  font-size: 12px;
-  color: #64748b;
+  font-size: 11px;
+  color: #9ca3af;
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 `;
 
 const EmptyState = styled.div`
@@ -49,13 +49,13 @@ const EmptyEmoji = styled.span`
 
 const EmptyTitle = styled.p`
   font-size: 14px;
-  color: #64748b;
+  color: #1a1a2e;
   margin: 0;
 `;
 
 const EmptySubtitle = styled.p`
   font-size: 12px;
-  color: #475569;
+  color: #6b7280;
   margin: 6px 0 0;
 `;
 

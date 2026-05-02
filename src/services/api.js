@@ -5,13 +5,8 @@ const api = axios.create({
 });
 
 export async function createRedemption(giftId) {
-  try {
-    const { data } = await api.post('/redemptions', { gift_id: giftId });
-    return data;
-  } catch {
-    console.log('Backend unavailable, continuing offline');
-    return null;
-  }
+  const { data } = await api.post('/redemptions', { gift_id: giftId });
+  return data;
 }
 
 export async function fetchDashboard() {
@@ -31,6 +26,27 @@ export async function fetchRedemptionDetail(id) {
 
 export async function advanceStatus(id, note) {
   const { data } = await api.patch(`/admin/redemptions/${id}/status`, { note });
+  return data;
+}
+
+export async function bulkDispatch(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/admin/bulk/dispatch', form);
+  return data;
+}
+
+export async function bulkDocket(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/admin/bulk/docket', form);
+  return data;
+}
+
+export async function bulkDelivered(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/admin/bulk/delivered', form);
   return data;
 }
 

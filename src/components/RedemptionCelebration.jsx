@@ -34,7 +34,7 @@ const Wrapper = styled.div`
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: #020617;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,7 +52,7 @@ const BgGlow1 = styled.div`
   width: 384px;
   height: 384px;
   border-radius: 50%;
-  background: rgba(249,115,22,0.2);
+  background: rgba(249,115,22,0.06);
   filter: blur(60px);
   animation: ${gradientPulse} 3s ease-in-out infinite;
 `;
@@ -65,7 +65,7 @@ const BgGlow2 = styled.div`
   width: 256px;
   height: 256px;
   border-radius: 50%;
-  background: rgba(59,130,246,0.2);
+  background: rgba(59,130,246,0.06);
   filter: blur(60px);
   animation: ${gradientPulse} 4s ease-in-out infinite reverse;
 `;
@@ -112,16 +112,13 @@ const CheckMark = styled.span`
 const Title = styled.h1`
   font-size: 30px;
   font-weight: 800;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1a1a2e;
   opacity: 0;
   transform: translateY(30px);
 `;
 
 const Subtitle = styled.p`
-  color: #94a3b8;
+  color: #6b7280;
   font-size: 14px;
   margin-top: 8px;
   opacity: 0;
@@ -131,8 +128,8 @@ const Subtitle = styled.p`
 const GiftCard = styled.div`
   margin-top: 32px;
   padding: 24px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 24px;
   position: relative;
   overflow: hidden;
@@ -143,7 +140,7 @@ const GiftCard = styled.div`
 const GiftCardShimmer = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.04), transparent);
   animation: ${shimmer} 3s ease-in-out infinite;
 `;
 
@@ -156,7 +153,7 @@ const GiftEmoji = styled.span`
 const GiftName = styled.h3`
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-top: 12px;
 `;
 

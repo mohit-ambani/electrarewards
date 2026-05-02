@@ -36,7 +36,7 @@ const notifColorMap = {
 
 const Wrapper = styled.div`
   min-height: 100vh;
-  background: #020617;
+  background: #ffffff;
   max-width: 430px;
   margin: 0 auto;
   padding-bottom: 96px;
@@ -132,8 +132,8 @@ const ContentArea = styled.div`
 `;
 
 const EmptyState = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 32px;
   text-align: center;
@@ -150,12 +150,12 @@ const BounceEmoji = styled.div`
 const EmptyTitle = styled.h3`
   font-size: 16px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
 `;
 
 const EmptyDesc = styled.p`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 8px;
   max-width: 240px;
   margin-left: auto;
@@ -202,18 +202,18 @@ const NotifHeader = styled.div`
 const NotifTitle = styled.p`
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1a1a2e;
 `;
 
 const NotifTime = styled.p`
   font-size: 10px;
-  color: #94a3b8;
+  color: #9ca3af;
   flex-shrink: 0;
 `;
 
 const NotifMessage = styled.p`
   font-size: 12px;
-  color: #cbd5e1;
+  color: #4b5563;
   margin-top: 2px;
   line-height: 1.4;
 `;

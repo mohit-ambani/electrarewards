@@ -37,7 +37,7 @@ const Wrapper = styled.div`
   position: fixed;
   inset: 0;
   z-index: 70;
-  background: rgba(2,6,23,0.95);
+  background: rgba(255,255,255,0.97);
   backdrop-filter: blur(16px);
   display: flex;
   flex-direction: column;
@@ -58,14 +58,14 @@ const LockEmoji = styled.div`
 const Title = styled.h2`
   font-size: 24px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #1a1a2e;
   text-align: center;
   opacity: 0;
 `;
 
 const Subtitle = styled.p`
   font-size: 14px;
-  color: #94a3b8;
+  color: #6b7280;
   text-align: center;
   margin-top: 8px;
   opacity: 0;
@@ -74,8 +74,8 @@ const Subtitle = styled.p`
 const DemoBox = styled.div`
   margin-top: 16px;
   padding: 12px 16px;
-  background: rgba(249,115,22,0.1);
-  border: 1px solid rgba(249,115,22,0.2);
+  background: rgba(249,115,22,0.06);
+  border: 1px solid rgba(249,115,22,0.15);
   border-radius: 12px;
   text-align: center;
   opacity: 0;
@@ -83,7 +83,7 @@ const DemoBox = styled.div`
 
 const DemoLabel = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
 `;
 
 const DemoOTP = styled.p`
@@ -97,7 +97,7 @@ const DemoOTP = styled.p`
 
 const HideBtn = styled.button`
   font-size: 10px;
-  color: #475569;
+  color: #9ca3af;
   text-decoration: underline;
   background: none;
   border: none;
@@ -124,7 +124,7 @@ const ErrorMsg = styled.p`
 
 const HelpText = styled.p`
   font-size: 12px;
-  color: #475569;
+  color: #9ca3af;
   margin-top: 24px;
   text-align: center;
   opacity: 0;
@@ -157,10 +157,7 @@ const SuccessEmoji = styled.span`
 const SuccessTitle = styled.h2`
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1a1a2e;
   margin-top: 24px;
   opacity: 0;
   transform: translateY(20px);
@@ -168,7 +165,7 @@ const SuccessTitle = styled.h2`
 
 const SuccessDesc = styled.p`
   font-size: 14px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 8px;
   opacity: 0;
   transform: translateY(10px);
@@ -177,8 +174,8 @@ const SuccessDesc = styled.p`
 const SuccessGiftCard = styled.div`
   margin-top: 24px;
   padding: 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   opacity: 0;
 `;
@@ -191,13 +188,13 @@ const SuccessGiftEmoji = styled.span`
 const SuccessGiftName = styled.p`
   font-size: 14px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-top: 8px;
 `;
 
 const SuccessGiftNote = styled.p`
   font-size: 11px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 4px;
 `;
 
@@ -346,7 +343,7 @@ export default function OTPVerification({ otp, gift, onSuccess }) {
 
   if (success) {
     return (
-      <Wrapper>
+      <Wrapper style={{ background: '#ffffff' }}>
         {[...Array(30)].map((_, i) => (
           <FloatingDot
             key={i}
@@ -422,16 +419,16 @@ export default function OTPVerification({ otp, gift, onSuccess }) {
             fontSize: 28,
             fontWeight: 700,
             borderRadius: 16,
-            border: `2px solid ${error ? '#ef4444' : otpValue.length > 0 ? '#f97316' : '#334155'}`,
-            background: 'rgba(30,41,59,0.8)',
-            color: error ? '#f87171' : '#fb923c',
+            border: `2px solid ${error ? '#ef4444' : otpValue.length > 0 ? '#f97316' : '#e8ecf1'}`,
+            background: '#f1f5f9',
+            color: error ? '#f87171' : '#1a1a2e',
             outline: 'none',
             caretColor: '#fb923c',
             transition: 'border-color 0.3s',
           }}
           focusStyle={{
             border: '2px solid #f97316',
-            boxShadow: '0 0 0 2px rgba(249,115,22,0.2)',
+            boxShadow: '0 0 0 2px rgba(249,115,22,0.15)',
           }}
         />
       </OtpWrap>

@@ -15,10 +15,16 @@ import ProfileScreen from './components/ProfileScreen';
 import RewardsScreen from './components/RewardsScreen';
 import BannerPage from './components/BannerPage';
 import NotificationsScreen from './components/NotificationsScreen';
+import OrderHistoryScreen from './components/OrderHistoryScreen';
+import DeliveryAddressScreen from './components/DeliveryAddressScreen';
+import EarnPointsScreen from './components/EarnPointsScreen';
+import SupportScreen from './components/SupportScreen';
+import TermsScreen from './components/TermsScreen';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
 import Redemptions from './admin/Redemptions';
 import RedemptionDetail from './admin/RedemptionDetail';
+import BulkUpload from './admin/BulkUpload';
 
 function CataloguePage() {
   return (
@@ -49,6 +55,7 @@ function AdminRoutes() {
         <Route exact path="/admin/dashboard" component={Dashboard} />
         <Route exact path="/admin/redemptions" component={Redemptions} />
         <Route path="/admin/redemptions/:id" component={RedemptionDetail} />
+        <Route exact path="/admin/bulk-upload" component={BulkUpload} />
       </Switch>
     </AdminLayout>
   );
@@ -76,6 +83,11 @@ export default function App() {
         <Route exact path="/profile" component={ProfileScreen} />
         <Route exact path="/rewards" component={RewardsScreen} />
         <Route exact path="/notifications" component={NotificationsScreen} />
+        <Route exact path="/orders" component={OrderHistoryScreen} />
+        <Route exact path="/address" component={DeliveryAddressScreen} />
+        <Route exact path="/earn" component={EarnPointsScreen} />
+        <Route exact path="/support" component={SupportScreen} />
+        <Route exact path="/terms" component={TermsScreen} />
         <Route path="/banner/:type" component={BannerPage} />
         <Route path="/admin" component={AdminRoutes} />
       </Switch>

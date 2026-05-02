@@ -25,7 +25,7 @@ const pulseOpacity = keyframes`
 
 const Wrapper = styled.div`
   min-height: 100vh;
-  background: #020617;
+  background: #ffffff;
   max-width: 430px;
   margin: 0 auto;
   padding-bottom: 96px;
@@ -108,8 +108,8 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -127,19 +127,19 @@ const StatIcon = styled.span`
 const StatValue = styled.p`
   font-size: 20px;
   font-weight: 800;
-  color: ${(p) => p.color || '#f8fafc'};
+  color: ${(p) => p.color || '#1a1a2e'};
 `;
 
 const StatLabel = styled.p`
   font-size: 10px;
-  color: #94a3b8;
+  color: #9ca3af;
   font-weight: 500;
 `;
 
 const BalanceCard = styled.div`
   margin-top: 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 16px;
   opacity: 0;
@@ -155,7 +155,7 @@ const BalanceRow = styled.div`
 
 const BalanceLabel = styled.p`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   font-weight: 500;
 `;
 
@@ -167,7 +167,7 @@ const BalancePct = styled.p`
 
 const BarTrack = styled.div`
   height: 12px;
-  background: #1e293b;
+  background: #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
@@ -197,13 +197,13 @@ const BarLabels = styled.div`
 
 const BarLabelText = styled.p`
   font-size: 10px;
-  color: #475569;
+  color: #9ca3af;
 `;
 
 const BarPointsText = styled.p`
   font-size: 12px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   animation: ${pulseOpacity} 2s ease-in-out infinite;
 `;
 
@@ -215,13 +215,13 @@ const HistorySection = styled.div`
 const HistoryTitle = styled.h2`
   font-size: 14px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
   margin-bottom: 12px;
 `;
 
 const EmptyState = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 16px;
   padding: 32px;
   text-align: center;
@@ -238,12 +238,12 @@ const BounceEmoji = styled.div`
 const EmptyTitle = styled.h3`
   font-size: 16px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1a1a2e;
 `;
 
 const EmptyDesc = styled.p`
   font-size: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   margin-top: 8px;
   max-width: 240px;
   margin-left: auto;
@@ -264,8 +264,8 @@ const HistoryList = styled.div`
 `;
 
 const HistoryEntry = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: #f8f9fb;
+  border: 1px solid #e8ecf1;
   border-radius: 12px;
   padding: 12px;
   display: flex;
@@ -295,7 +295,7 @@ const EntryInfo = styled.div`
 const EntryName = styled.p`
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -303,7 +303,7 @@ const EntryName = styled.p`
 
 const EntryDate = styled.p`
   font-size: 10px;
-  color: #94a3b8;
+  color: #9ca3af;
   margin-top: 2px;
 `;
 
@@ -325,8 +325,8 @@ const RedeemedBadge = styled.span`
   border-radius: 12px;
   font-size: 9px;
   font-weight: 700;
-  background: rgba(34,197,94,0.2);
-  color: #4ade80;
+  background: rgba(34,197,94,0.12);
+  color: #16a34a;
 `;
 
 export default function RewardsScreen() {

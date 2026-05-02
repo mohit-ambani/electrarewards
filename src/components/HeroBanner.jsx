@@ -31,7 +31,7 @@ const banners = [
 ];
 
 const BannerWrapper = styled.div`
-  padding: 16px 16px 0;
+  padding: 10px 10px 0;
   overflow: hidden;
 
   .swiper {
@@ -46,7 +46,7 @@ const BannerWrapper = styled.div`
   .swiper-pagination-bullet {
     width: 6px;
     height: 6px;
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.15);
     opacity: 1;
     transition: all 0.3s ease;
   }
@@ -54,17 +54,17 @@ const BannerWrapper = styled.div`
   .swiper-pagination-bullet-active {
     width: 20px;
     border-radius: 3px;
-    background: #ffffff;
+    background: rgba(0, 0, 0, 0.5);
   }
 `;
 
 const Slide = styled.div`
   position: relative;
-  padding: 22px 20px;
+  padding: 16px 16px;
   background: ${(props) => props.$gradient};
   cursor: pointer;
   overflow: hidden;
-  min-height: 140px;
+  min-height: 110px;
   display: flex;
   align-items: center;
 
@@ -75,21 +75,20 @@ const Slide = styled.div`
 
 const DecorCircle1 = styled.div`
   position: absolute;
-  right: -24px;
-  top: -24px;
-  width: 120px;
-  height: 120px;
+  right: -20px;
+  top: -20px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
-  filter: blur(1px);
 `;
 
 const DecorCircle2 = styled.div`
   position: absolute;
   right: -8px;
-  bottom: -32px;
-  width: 90px;
-  height: 90px;
+  bottom: -24px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
 `;
@@ -97,9 +96,9 @@ const DecorCircle2 = styled.div`
 const DecorCircle3 = styled.div`
   position: absolute;
   left: 50%;
-  top: -16px;
-  width: 60px;
-  height: 60px;
+  top: -12px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
 `;
@@ -118,7 +117,7 @@ const TextBlock = styled.div`
 `;
 
 const BannerTitle = styled.h2`
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
   color: #ffffff;
   margin: 0;
@@ -126,25 +125,25 @@ const BannerTitle = styled.h2`
 `;
 
 const BannerSubtitle = styled.p`
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
-  margin: 6px 0 0;
-  max-width: 200px;
-  line-height: 1.4;
+  margin: 4px 0 0;
+  max-width: 190px;
+  line-height: 1.35;
 `;
 
 const ExploreText = styled.p`
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   display: flex;
   align-items: center;
   gap: 4px;
 `;
 
 const Emoji = styled.span`
-  font-size: 48px;
+  font-size: 38px;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 `;
 

@@ -22,7 +22,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #020617;
+  background: #ffffff;
   overflow: hidden;
 `;
 
@@ -31,7 +31,7 @@ const BgGlow = styled.div`
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(251,146,60,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(251,146,60,0.08) 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -43,7 +43,7 @@ const ArcLine = styled.div`
   width: 1px;
   height: 100%;
   left: ${(p) => 15 + p.idx * 15}%;
-  background: linear-gradient(to bottom, transparent, rgba(251,146,60,0.25), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(251,146,60,0.12), transparent);
   opacity: 0;
 `;
 
@@ -91,7 +91,7 @@ const BrandName = styled.h1`
 
 const Tagline = styled.p`
   margin-top: 12px;
-  color: #94a3b8;
+  color: #6b7280;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 2px;
@@ -104,7 +104,7 @@ const LoadingBarTrack = styled.div`
   margin-top: 32px;
   width: 192px;
   height: 4px;
-  background: #1e293b;
+  background: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
   opacity: 0;

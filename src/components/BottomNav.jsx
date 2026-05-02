@@ -20,17 +20,17 @@ const NavWrapper = styled.nav`
   width: 100%;
   max-width: 430px;
   z-index: 100;
-  background: rgba(2, 6, 23, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(248, 250, 252, 0.06);
+  border-top: 1px solid #e8ecf1;
 `;
 
 const NavInner = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 6px 8px 2px;
+  padding: 4px 8px 2px;
   max-width: 430px;
   margin: 0 auto;
 `;
@@ -40,9 +40,9 @@ const TabButton = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 18px;
-  border-radius: 14px;
+  gap: 1px;
+  padding: 6px 16px;
+  border-radius: 12px;
   border: none;
   background: ${(props) => (props.$active ? 'rgba(251, 146, 60, 0.1)' : 'transparent')};
   cursor: pointer;
@@ -57,15 +57,15 @@ const TabIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: ${(props) => (props.$active ? '#fb923c' : '#64748b')};
+  font-size: 18px;
+  color: ${(props) => (props.$active ? '#fb923c' : '#9ca3af')};
   transition: color 0.25s ease;
 `;
 
 const TabLabel = styled.span`
   font-size: 10px;
   font-weight: 600;
-  color: ${(props) => (props.$active ? '#fb923c' : '#64748b')};
+  color: ${(props) => (props.$active ? '#fb923c' : '#9ca3af')};
   transition: color 0.25s ease;
 `;
 
