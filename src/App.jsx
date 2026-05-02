@@ -10,7 +10,7 @@ import GiftDetail from './components/GiftDetail';
 import RedemptionCelebration from './components/RedemptionCelebration';
 import TrackingScreen from './components/TrackingScreen';
 import DeliverySuccess from './components/DeliverySuccess';
-import BottomNav from './components/BottomNav';
+import QuickNav from './components/QuickNav';
 import ProfileScreen from './components/ProfileScreen';
 import RewardsScreen from './components/RewardsScreen';
 import BannerPage from './components/BannerPage';
@@ -32,6 +32,7 @@ function CataloguePage() {
     <>
       <Header />
       <HeroBanner />
+      <QuickNav />
       <SearchBar />
       <CategoryFilter />
       <GiftGrid />
@@ -62,8 +63,6 @@ function AdminRoutes() {
   );
 }
 
-const SHOW_BOTTOM_NAV = ['/', '/home', '/profile', '/rewards', '/notifications'];
-
 export default function App() {
   const location = useLocation();
   const syncOrders = useAppStore((s) => s.syncOrders);
@@ -72,33 +71,24 @@ export default function App() {
     syncOrders();
   }, []);
 
-  const isAdmin = location.pathname.startsWith('/admin');
-  const isBannerPage = location.pathname.startsWith('/banner/');
-  const showBottomNav =
-    !isAdmin &&
-    (SHOW_BOTTOM_NAV.includes(location.pathname) || isBannerPage);
-
   return (
-    <>
-      <Switch>
-        <Route exact path="/" component={SplashScreen} />
-        <Route exact path="/home" component={CataloguePage} />
-        <Route path="/gift/:id" component={GiftDetail} />
-        <Route exact path="/celebrate" component={RedemptionCelebration} />
-        <Route exact path="/tracking" component={TrackingScreen} />
-        <Route exact path="/delivered" component={DeliverySuccess} />
-        <Route exact path="/profile" component={ProfileScreen} />
-        <Route exact path="/rewards" component={RewardsScreen} />
-        <Route exact path="/notifications" component={NotificationsScreen} />
-        <Route exact path="/orders" component={OrderHistoryScreen} />
-        <Route exact path="/address" component={DeliveryAddressScreen} />
-        <Route exact path="/earn" component={EarnPointsScreen} />
-        <Route exact path="/support" component={SupportScreen} />
-        <Route exact path="/terms" component={TermsScreen} />
-        <Route path="/banner/:type" component={BannerPage} />
-        <Route path="/admin" component={AdminRoutes} />
-      </Switch>
-      {showBottomNav && <BottomNav />}
-    </>
+    <Switch>
+      <Route exact path="/" component={SplashScreen} />
+      <Route exact path="/home" component={CataloguePage} />
+      <Route path="/gift/:id" component={GiftDetail} />
+      <Route exact path="/celebrate" component={RedemptionCelebration} />
+      <Route exact path="/tracking" component={TrackingScreen} />
+      <Route exact path="/delivered" component={DeliverySuccess} />
+      <Route exact path="/profile" component={ProfileScreen} />
+      <Route exact path="/rewards" component={RewardsScreen} />
+      <Route exact path="/notifications" component={NotificationsScreen} />
+      <Route exact path="/orders" component={OrderHistoryScreen} />
+      <Route exact path="/address" component={DeliveryAddressScreen} />
+      <Route exact path="/earn" component={EarnPointsScreen} />
+      <Route exact path="/support" component={SupportScreen} />
+      <Route exact path="/terms" component={TermsScreen} />
+      <Route path="/banner/:type" component={BannerPage} />
+      <Route path="/admin" component={AdminRoutes} />
+    </Switch>
   );
 }

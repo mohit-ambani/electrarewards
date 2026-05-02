@@ -20,7 +20,7 @@ const Wrapper = styled.div`
   background: #ffffff;
   max-width: 430px;
   margin: 0 auto;
-  padding-bottom: 96px;
+  padding-bottom: 32px;
 `;
 
 const HeaderGradient = styled.div`
