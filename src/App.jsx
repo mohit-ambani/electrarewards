@@ -25,6 +25,7 @@ import Dashboard from './admin/Dashboard';
 import Redemptions from './admin/Redemptions';
 import RedemptionDetail from './admin/RedemptionDetail';
 import BulkUpload from './admin/BulkUpload';
+import useAppStore from './store/useAppStore';
 
 function CataloguePage() {
   return (
@@ -65,6 +66,12 @@ const SHOW_BOTTOM_NAV = ['/', '/home', '/profile', '/rewards', '/notifications']
 
 export default function App() {
   const location = useLocation();
+  const syncOrders = useAppStore((s) => s.syncOrders);
+
+  useEffect(() => {
+    syncOrders();
+  }, []);
+
   const isAdmin = location.pathname.startsWith('/admin');
   const isBannerPage = location.pathname.startsWith('/banner/');
   const showBottomNav =

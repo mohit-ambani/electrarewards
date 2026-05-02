@@ -104,6 +104,7 @@ const OrderCard = styled.div`
   margin-bottom: 8px;
   opacity: 0;
   transform: translateY(12px);
+  cursor: pointer;
 `;
 
 const OrderEmoji = styled.div`
@@ -195,13 +196,34 @@ const BrowseBtn = styled.button`
   cursor: pointer;
 `;
 
+const LoadingWrap = styled.div`
+  text-align: center;
+  padding: 60px 32px;
+  color: #9ca3af;
+  font-size: 14px;
+`;
+
+const STATUS_CONFIG = {
+  redeemed:         { label: 'Redeemed',         bg: 'rgba(59,130,246,0.12)',  color: '#3b82f6' },
+  accepted:         { label: 'Accepted',         bg: 'rgba(99,102,241,0.12)',  color: '#6366f1' },
+  packed:           { label: 'Packed',           bg: 'rgba(168,85,247,0.12)',  color: '#a855f7' },
+  in_transit:       { label: 'In Transit',       bg: 'rgba(249,115,22,0.12)',  color: '#ea580c' },
+  out_for_delivery: { label: 'Out for Delivery', bg: 'rgba(234,179,8,0.12)',   color: '#ca8a04' },
+  delivered:        { label: 'Delivered',         bg: 'rgba(34,197,94,0.12)',   color: '#16a34a' },
+};
+
 export default function OrderHistoryScreen() {
   const history = useHistory();
-  const { redemptionHistory } = useAppStore();
+  const { redemptionHistory, syncOrders, ordersLoaded } = useAppStore();
 
   const totalSpent = redemptionHistory.reduce((sum, e) => sum + e.points, 0);
+  const deliveredCount = redemptionHistory.filter((e) => e.status === 'delivered').length;
   const summaryRefs = useRef([]);
   const cardRefs = useRef([]);
+
+  useEffect(() => {
+    syncOrders();
+  }, []);
 
   useEffect(() => {
     summaryRefs.current.forEach((el, i) => {
@@ -227,7 +249,30 @@ export default function OrderHistoryScreen() {
         easing: 'easeOutExpo',
       });
     });
-  }, [redemptionHistory.length]);
+  }, [redemptionHistory.length, ordersLoaded]);
+
+  const handleOrderTap = (entry) => {
+    if (entry.status === 'delivered') {
+      history.push('/delivered');
+    } else {
+      useAppStore.setState({
+        lastRedemption: {
+          id: entry.redemptionId,
+          order_id: entry.orderId,
+          docket_number: entry.docketNumber,
+          otp: entry.otp,
+          status: entry.status,
+        },
+        selectedGift: {
+          name: entry.name,
+          image: entry.image,
+          points: entry.points,
+          color: entry.color,
+        },
+      });
+      history.push('/tracking');
+    }
+  };
 
   return (
     <Wrapper>
@@ -238,62 +283,70 @@ export default function OrderHistoryScreen() {
         <HeaderTitle>Order History</HeaderTitle>
       </Header>
 
-      <SummaryBar>
-        {[
-          { label: 'Total Orders', value: String(redemptionHistory.length), color: '#1a1a2e' },
-          { label: 'Points Spent', value: totalSpent > 0 ? `${(totalSpent / 1000).toFixed(1)}k` : '0', color: '#f87171' },
-          { label: 'Status', value: redemptionHistory.length > 0 ? 'Active' : 'New', color: '#16a34a' },
-        ].map((s, i) => (
-          <SummaryCard key={i} ref={(el) => (summaryRefs.current[i] = el)}>
-            <SummaryValue color={s.color}>{s.value}</SummaryValue>
-            <SummaryLabel>{s.label}</SummaryLabel>
-          </SummaryCard>
-        ))}
-      </SummaryBar>
+      {!ordersLoaded ? (
+        <LoadingWrap>Loading orders...</LoadingWrap>
+      ) : (
+        <>
+          <SummaryBar>
+            {[
+              { label: 'Total Orders', value: String(redemptionHistory.length), color: '#1a1a2e' },
+              { label: 'Points Spent', value: totalSpent > 0 ? `${(totalSpent / 1000).toFixed(1)}k` : '0', color: '#f87171' },
+              { label: 'Delivered', value: String(deliveredCount), color: '#16a34a' },
+            ].map((s, i) => (
+              <SummaryCard key={i} ref={(el) => (summaryRefs.current[i] = el)}>
+                <SummaryValue color={s.color}>{s.value}</SummaryValue>
+                <SummaryLabel>{s.label}</SummaryLabel>
+              </SummaryCard>
+            ))}
+          </SummaryBar>
 
-      <ListSection>
-        {redemptionHistory.length > 0 ? (
-          <>
-            <SectionLabel>Recent Orders</SectionLabel>
-            {redemptionHistory.map((entry, i) => {
-              const date = new Date(entry.timestamp);
-              const status = i === 0 ? 'Processing' : 'Delivered';
-              const statusBg = i === 0 ? 'rgba(249,115,22,0.12)' : 'rgba(34,197,94,0.12)';
-              const statusColor = i === 0 ? '#ea580c' : '#16a34a';
+          <ListSection>
+            {redemptionHistory.length > 0 ? (
+              <>
+                <SectionLabel>Recent Orders</SectionLabel>
+                {redemptionHistory.map((entry, i) => {
+                  const date = new Date(entry.timestamp);
+                  const cfg = STATUS_CONFIG[entry.status] || STATUS_CONFIG.redeemed;
 
-              return (
-                <OrderCard key={entry.timestamp + '-' + i} ref={(el) => (cardRefs.current[i] = el)}>
-                  <OrderEmoji>{entry.image}</OrderEmoji>
-                  <OrderInfo>
-                    <OrderName>{entry.name}</OrderName>
-                    <OrderDate>
-                      {entry.orderId ? `#${entry.orderId}` : ''}{entry.orderId ? ' · ' : ''}
-                      {date.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </OrderDate>
-                  </OrderInfo>
-                  <OrderRight>
-                    <OrderPoints>-{entry.points.toLocaleString()}</OrderPoints>
-                    <StatusBadge bg={statusBg} color={statusColor}>
-                      {status}
-                    </StatusBadge>
-                  </OrderRight>
-                </OrderCard>
-              );
-            })}
-          </>
-        ) : (
-          <EmptyState>
-            <EmptyEmoji>📦</EmptyEmoji>
-            <EmptyTitle>No Orders Yet</EmptyTitle>
-            <EmptyDesc>Your order history will appear here once you redeem your first gift.</EmptyDesc>
-            <BrowseBtn onClick={() => history.push('/home')}>Browse Gifts</BrowseBtn>
-          </EmptyState>
-        )}
-      </ListSection>
+                  return (
+                    <OrderCard
+                      key={entry.orderId || entry.timestamp + '-' + i}
+                      ref={(el) => (cardRefs.current[i] = el)}
+                      onClick={() => handleOrderTap(entry)}
+                    >
+                      <OrderEmoji>{entry.image}</OrderEmoji>
+                      <OrderInfo>
+                        <OrderName>{entry.name}</OrderName>
+                        <OrderDate>
+                          {entry.orderId ? `#${entry.orderId}` : ''}{entry.orderId ? ' · ' : ''}
+                          {date.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </OrderDate>
+                      </OrderInfo>
+                      <OrderRight>
+                        <OrderPoints>-{entry.points.toLocaleString()}</OrderPoints>
+                        <StatusBadge bg={cfg.bg} color={cfg.color}>
+                          {cfg.label}
+                        </StatusBadge>
+                      </OrderRight>
+                    </OrderCard>
+                  );
+                })}
+              </>
+            ) : (
+              <EmptyState>
+                <EmptyEmoji>📦</EmptyEmoji>
+                <EmptyTitle>No Orders Yet</EmptyTitle>
+                <EmptyDesc>Your order history will appear here once you redeem your first gift.</EmptyDesc>
+                <BrowseBtn onClick={() => history.push('/home')}>Browse Gifts</BrowseBtn>
+              </EmptyState>
+            )}
+          </ListSection>
+        </>
+      )}
     </Wrapper>
   );
 }

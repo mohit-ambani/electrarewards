@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useHistory } from 'react-router-dom';
 import anime from 'animejs';
@@ -9,6 +9,7 @@ import {
   generateDocket,
   generateOTP,
 } from '../data/trackingSimulation';
+import { fetchOrderTracking } from '../services/api';
 import OTPVerification from './OTPVerification';
 
 const pulse = keyframes`
@@ -40,6 +41,15 @@ const bgMap = {
   'bg-amber-500/10': 'rgba(245,158,11,0.1)',
   'bg-red-500/10': 'rgba(239,68,68,0.1)',
   'bg-yellow-500/10': 'rgba(234,179,8,0.1)',
+};
+
+const STATUS_TO_STAGE = {
+  redeemed: 0,
+  accepted: 2,
+  packed: 3,
+  in_transit: 6,
+  out_for_delivery: 8,
+  delivered: 9,
 };
 
 const Wrapper = styled.div`
@@ -174,7 +184,7 @@ const GiftDelivery = styled.p`
   margin-top: 2px;
 `;
 
-const CountdownBar = styled.div`
+const StatusBar = styled.div`
   margin: 12px 20px 0;
   padding: 10px 16px;
   background: rgba(249,115,22,0.06);
@@ -186,16 +196,16 @@ const CountdownBar = styled.div`
   flex-shrink: 0;
 `;
 
-const CountdownLabel = styled.span`
+const StatusLabel = styled.span`
   font-size: 12px;
   color: #6b7280;
 `;
 
-const CountdownValue = styled.span`
+const StatusValue = styled.span`
   font-size: 14px;
   font-weight: 700;
   color: #fb923c;
-  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
 `;
 
 const TimelineWrap = styled.div`
@@ -282,7 +292,7 @@ const StageTime = styled.p`
   margin-top: 4px;
 `;
 
-const SkipBtn = styled.button`
+const BackBtn = styled.button`
   margin: 0 20px 20px;
   padding: 14px;
   border-radius: 14px;
@@ -297,12 +307,21 @@ const SkipBtn = styled.button`
   width: calc(100% - 40px);
 `;
 
-const DemoNote = styled.p`
+const RefreshNote = styled.p`
   text-align: center;
   font-size: 10px;
   color: #9ca3af;
   margin: -12px 0 20px;
 `;
+
+const STATUS_LABELS = {
+  redeemed: 'Redeemed',
+  accepted: 'Accepted',
+  packed: 'Packed',
+  in_transit: 'In Transit',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+};
 
 export default function TrackingScreen() {
   const history = useHistory();
@@ -313,38 +332,50 @@ export default function TrackingScreen() {
   const docket = useMemo(() => lastRedemption?.docket_number || generateDocket(), [lastRedemption]);
   const otp = useMemo(() => lastRedemption?.otp || generateOTP(), [lastRedemption]);
 
-  const [currentStage, setCurrentStage] = useState(0);
-  const [countdown, setCountdown] = useState(60);
+  const backendStatus = lastRedemption?.status || 'redeemed';
+  const initialStage = STATUS_TO_STAGE[backendStatus] ?? 0;
+
+  const [currentStage, setCurrentStage] = useState(initialStage);
+  const [liveStatus, setLiveStatus] = useState(backendStatus);
   const [showOTP, setShowOTP] = useState(false);
+  const [polling, setPolling] = useState(true);
 
   const stageRefs = useRef([]);
 
-  // Auto-advance every 60s
-  useEffect(() => {
-    if (showOTP) return;
+  const pollStatus = useCallback(async () => {
+    if (!orderId || !lastRedemption?.order_id) return;
+    try {
+      const data = await fetchOrderTracking(orderId);
+      const newStatus = data.status;
+      if (newStatus !== liveStatus) {
+        setLiveStatus(newStatus);
+        const newStage = STATUS_TO_STAGE[newStatus] ?? currentStage;
+        setCurrentStage(newStage);
 
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          setCurrentStage((s) => {
-            const next = s + 1;
-            if (next >= trackingStages.length) {
-              clearInterval(interval);
-              setShowOTP(true);
-              return s;
-            }
-            return next;
-          });
-          return 60;
+        useAppStore.setState((state) => ({
+          lastRedemption: { ...state.lastRedemption, status: newStatus, docket_number: data.docket_number },
+          redemptionHistory: state.redemptionHistory.map((o) =>
+            o.orderId === orderId ? { ...o, status: newStatus, docketNumber: data.docket_number } : o
+          ),
+        }));
+
+        if (newStatus === 'delivered') {
+          setPolling(false);
+          history.push('/delivered');
         }
-        return prev - 1;
-      });
-    }, 1000);
+      }
+    } catch {
+      // backend unreachable, keep current state
+    }
+  }, [orderId, liveStatus, currentStage, lastRedemption, history]);
 
+  useEffect(() => {
+    if (!polling) return;
+    pollStatus();
+    const interval = setInterval(pollStatus, 15000);
     return () => clearInterval(interval);
-  }, [showOTP]);
+  }, [polling, pollStatus]);
 
-  // Animate stage entries
   useEffect(() => {
     stageRefs.current.forEach((el, i) => {
       if (!el || i > currentStage) return;
@@ -358,15 +389,6 @@ export default function TrackingScreen() {
       });
     });
   }, [currentStage]);
-
-  const handleSkip = () => {
-    if (currentStage < trackingStages.length - 1) {
-      setCurrentStage((s) => s + 1);
-      setCountdown(60);
-    } else {
-      setShowOTP(true);
-    }
-  };
 
   const handleOTPSuccess = () => {
     history.push('/delivered');
@@ -387,7 +409,7 @@ export default function TrackingScreen() {
   const fillDetail = (detail) =>
     detail.replace('{orderId}', orderId).replace('{docket}', docket);
 
-  if (showOTP) {
+  if (showOTP || liveStatus === 'out_for_delivery') {
     return (
       <OTPVerification otp={otp} gift={gift} onSuccess={handleOTPSuccess} />
     );
@@ -415,7 +437,7 @@ export default function TrackingScreen() {
             {currentStage + 1}/{trackingStages.length} stages
           </ProgressText>
           <ProgressText color="#fb923c">
-            Next update in {countdown}s
+            {STATUS_LABELS[liveStatus] || liveStatus}
           </ProgressText>
         </ProgressInfo>
       </Header>
@@ -428,12 +450,10 @@ export default function TrackingScreen() {
         </GiftInfo>
       </GiftSummary>
 
-      <CountdownBar>
-        <CountdownLabel>Next update in</CountdownLabel>
-        <CountdownValue>
-          {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
-        </CountdownValue>
-      </CountdownBar>
+      <StatusBar>
+        <StatusLabel>Current Status</StatusLabel>
+        <StatusValue>{STATUS_LABELS[liveStatus] || liveStatus}</StatusValue>
+      </StatusBar>
 
       <TimelineWrap>
         {trackingStages.map((stage, i) => {
@@ -468,12 +488,10 @@ export default function TrackingScreen() {
         })}
       </TimelineWrap>
 
-      <SkipBtn onClick={handleSkip}>
-        {currentStage < trackingStages.length - 1
-          ? 'Skip to Next Update (Demo)'
-          : 'Complete Delivery (Demo)'}
-      </SkipBtn>
-      <DemoNote>Demo mode: Updates every 1 minute (or tap to skip)</DemoNote>
+      <BackBtn onClick={() => history.push('/orders')}>
+        View All Orders
+      </BackBtn>
+      <RefreshNote>Status updates every 15 seconds from server</RefreshNote>
     </Wrapper>
   );
 }

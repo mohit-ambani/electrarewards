@@ -4,6 +4,61 @@ import { generateOrderId, generateDocketNumber, generateOTP } from '../utils/ord
 
 const router = Router();
 
+// GET /api/redemptions — Fetch all redemptions for user (with gift info + status log)
+router.get('/', async (req, res, next) => {
+  try {
+    const userId = req.query.user_id || 1;
+
+    const { rows } = await pool.query(
+      `SELECT r.id, r.order_id, r.docket_number, r.otp, r.status, r.points_spent,
+              r.created_at, r.updated_at,
+              g.name as gift_name, g.image as gift_image, g.category as gift_category,
+              g.points as gift_points, g.color as gift_color, g.description as gift_description
+       FROM redemptions r
+       JOIN gifts g ON r.gift_id = g.id
+       WHERE r.user_id = $1
+       ORDER BY r.created_at DESC`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/redemptions/:orderId/track — Full tracking info for a single order
+router.get('/:orderId/track', async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const { rows } = await pool.query(
+      `SELECT r.id, r.order_id, r.docket_number, r.otp, r.status, r.points_spent,
+              r.created_at, r.updated_at,
+              g.name as gift_name, g.image as gift_image, g.category as gift_category,
+              g.points as gift_points, g.color as gift_color
+       FROM redemptions r
+       JOIN gifts g ON r.gift_id = g.id
+       WHERE r.order_id = $1`,
+      [orderId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const { rows: statusLog } = await pool.query(
+      `SELECT status, note, created_at FROM redemption_status_log
+       WHERE redemption_id = $1 ORDER BY created_at ASC`,
+      [rows[0].id]
+    );
+
+    res.json({ ...rows[0], status_log: statusLog });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // POST /api/redemptions — Create a new redemption
 router.post('/', async (req, res, next) => {
   const client = await pool.connect();

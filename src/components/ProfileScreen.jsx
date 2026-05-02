@@ -285,24 +285,33 @@ const tierConfig = {
   },
 };
 
-const settingsMenu = [
-  { icon: '📦', label: 'Order History', sub: '12 orders', path: '/orders' },
-  { icon: '📍', label: 'Delivery Address', sub: 'Sector 21, Noida', path: '/address' },
-  { icon: '🔔', label: 'Notifications', sub: 'All enabled', path: '/notifications' },
-  { icon: '🎯', label: 'Earn More Points', sub: 'View missions', path: '/earn' },
-  { icon: '📞', label: 'Support', sub: '24/7 available', path: '/support' },
-  { icon: '📄', label: 'Terms & Conditions', sub: '', path: '/terms' },
-];
+function getSettingsMenu(orderCount) {
+  return [
+    { icon: '📦', label: 'Order History', sub: `${orderCount} orders`, path: '/orders' },
+    { icon: '📍', label: 'Delivery Address', sub: 'Sector 21, Noida', path: '/address' },
+    { icon: '🔔', label: 'Notifications', sub: 'All enabled', path: '/notifications' },
+    { icon: '🎯', label: 'Earn More Points', sub: 'View missions', path: '/earn' },
+    { icon: '📞', label: 'Support', sub: '24/7 available', path: '/support' },
+    { icon: '📄', label: 'Terms & Conditions', sub: '', path: '/terms' },
+  ];
+}
 
-const stats = [
-  { label: 'Gifts Redeemed', value: '12', icon: '🎁' },
-  { label: 'Points Earned', value: '85K', icon: '⚡' },
-  { label: 'Rank', value: '#24', icon: '🏆' },
-];
+function getStats(orderCount, totalSpent) {
+  const pointsLabel = totalSpent >= 1000 ? `${(totalSpent / 1000).toFixed(0)}K` : String(totalSpent);
+  return [
+    { label: 'Gifts Redeemed', value: String(orderCount), icon: '🎁' },
+    { label: 'Points Spent', value: pointsLabel, icon: '⚡' },
+    { label: 'Rank', value: '#24', icon: '🏆' },
+  ];
+}
 
 export default function ProfileScreen() {
   const history = useHistory();
-  const { userPoints } = useAppStore();
+  const { userPoints, redemptionHistory, syncOrders } = useAppStore();
+
+  useEffect(() => {
+    syncOrders();
+  }, []);
 
   const tier =
     userPoints >= 20000
@@ -422,7 +431,7 @@ export default function ProfileScreen() {
       </PointsCard>
 
       <StatsGrid>
-        {stats.map((stat, i) => (
+        {getStats(redemptionHistory.length, redemptionHistory.reduce((s, e) => s + e.points, 0)).map((stat, i) => (
           <StatItem key={i} ref={(el) => (statRefs.current[i] = el)}>
             <StatIcon>{stat.icon}</StatIcon>
             <StatValue>{stat.value}</StatValue>
@@ -433,7 +442,7 @@ export default function ProfileScreen() {
 
       <SettingsSection>
         <SettingsTitle>Settings</SettingsTitle>
-        {settingsMenu.map((item, i) => (
+        {getSettingsMenu(redemptionHistory.length).map((item, i) => (
           <MenuItem key={i} ref={(el) => (menuRefs.current[i] = el)} onClick={() => history.push(item.path)}>
             <MenuIcon>{item.icon}</MenuIcon>
             <MenuText>

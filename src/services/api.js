@@ -9,6 +9,16 @@ export async function createRedemption(giftId) {
   return data;
 }
 
+export async function fetchMyOrders() {
+  const { data } = await api.get('/redemptions');
+  return data;
+}
+
+export async function fetchOrderTracking(orderId) {
+  const { data } = await api.get(`/redemptions/${orderId}/track`);
+  return data;
+}
+
 export async function fetchDashboard() {
   const { data } = await api.get('/admin/dashboard');
   return data;
